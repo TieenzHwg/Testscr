@@ -1,195 +1,184 @@
-local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
-local RunService = game:GetService("RunService")
+local p = game.Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+local char, hum, hrp
 
-local speed = 16
+local gui = Instance.new("ScreenGui", p:WaitForChild("PlayerGui"))
+gui.ResetOnSpawn = false
+
+-- Toggle button
+local toggleBtn = Instance.new("TextButton", gui)
+toggleBtn.Size = UDim2.new(0, 25, 0, 25)
+toggleBtn.Position = UDim2.new(0, 10, 0, 10)
+toggleBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+toggleBtn.BorderColor3 = Color3.fromRGB(255, 0, 0)
+toggleBtn.BorderSizePixel = 2
+toggleBtn.Text = ""
+toggleBtn.Active = true
+toggleBtn.Draggable = true
+
+-- Main menu
+local menu = Instance.new("Frame", gui)
+menu.Size = UDim2.new(0, 250, 0, 110)
+menu.Position = UDim2.new(0, 40, 0, 50)
+menu.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+menu.BorderColor3 = Color3.fromRGB(255, 0, 0)
+menu.BorderSizePixel = 2
+menu.Visible = false
+
+toggleBtn.MouseButton1Click:Connect(function()
+	menu.Visible = not menu.Visible
+end)
+
+-- Create line function
+local function createLine(title, startVal, onMinus, onPlus, onClick)
+	local y = #menu:GetChildren() * 25
+	local label = Instance.new("TextButton", menu)
+	label.Size = UDim2.new(0, 80, 0, 25)
+	label.Position = UDim2.new(0, 10, 0, y)
+	label.Text = title
+	label.BackgroundColor3 = Color3.new(0, 0, 0)
+	label.BorderColor3 = Color3.fromRGB(255, 0, 0)
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.BorderSizePixel = 2
+
+	if onClick then
+		label.MouseButton1Click:Connect(onClick)
+	end
+
+	local minus = Instance.new("TextButton", menu)
+	minus.Size = UDim2.new(0, 30, 0, 25)
+	minus.Position = UDim2.new(0, 100, 0, y)
+	minus.Text = "-"
+	minus.BackgroundColor3 = Color3.new(0, 0, 0)
+	minus.BorderColor3 = Color3.fromRGB(255, 0, 0)
+	minus.TextColor3 = Color3.new(1, 1, 1)
+	minus.BorderSizePixel = 2
+	minus.MouseButton1Click:Connect(onMinus)
+
+	local plus = minus:Clone()
+	plus.Text = "+"
+	plus.Position = UDim2.new(0, 190, 0, y)
+	plus.Parent = menu
+	plus.MouseButton1Click:Connect(onPlus)
+
+	local display = Instance.new("TextLabel", menu)
+	display.Size = UDim2.new(0, 50, 0, 25)
+	display.Position = UDim2.new(0, 135, 0, y)
+	display.Text = tostring(startVal)
+	display.BackgroundColor3 = Color3.new(0, 0, 0)
+	display.BorderColor3 = Color3.fromRGB(255, 0, 0)
+	display.TextColor3 = Color3.new(1, 1, 1)
+	display.BorderSizePixel = 2
+
+	return display
+end
+
+-- WalkSpeed
+local ws = 16
+local wsToggle = false
+local wsDisplay = createLine("speed", ws,
+	function() ws = math.max(0, ws - 25) end,
+	function() ws = ws + 25 end,
+	function() wsToggle = not wsToggle end
+)
+
+-- Fly
 local flySpeed = 0
-local flyEnabled = false
-local speedEnabled = false
-local auraEnabled = false
-
-local scr = Instance.new("ScreenGui", lp:WaitForChild("PlayerGui"))
-scr.ResetOnSpawn = false
-
-local frame = Instance.new("Frame", scr)
-frame.BackgroundColor3 = Color3.new(0, 0, 0)
-frame.BorderColor3 = Color3.new(1, 0, 0)
-frame.Size = UDim2.new(0, 200, 0, 150)
-frame.Position = UDim2.new(0, 100, 0, 100)
-frame.Active = true
-frame.Draggable = true
-
-local corners = {}
-for _, p in pairs({Vector2.new(0,0), Vector2.new(1,0), Vector2.new(0,1), Vector2.new(1,1),
-                   Vector2.new(0.5,0), Vector2.new(0.5,1), Vector2.new(0,0.5), Vector2.new(1,0.5)}) do
-	local dot = Instance.new("Frame", frame)
-	dot.BackgroundColor3 = Color3.new(1,0,0)
-	dot.Size = UDim2.new(0,6,0,6)
-	dot.Position = UDim2.new(p.X, -3, p.Y, -3)
-	dot.AnchorPoint = p
-	dot.BorderSizePixel = 0
-	dot.Name = "Resizer"
-	table.insert(corners, dot)
-end
-
-local draggingCorner, dragStart, startSize, startPos
-for _, dot in pairs(corners) do
-	dot.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			draggingCorner = dot
-			dragStart = input.Position
-			startSize = frame.Size
-			startPos = frame.Position
-		end
-	end)
-end
-
-UIS.InputChanged:Connect(function(input)
-	if draggingCorner and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = input.Position - dragStart
-		local anchor = draggingCorner.AnchorPoint
-		local newSize = UDim2.new(0, startSize.X.Offset + delta.X * (anchor.X == 0 and 1 or -1),
-		                          0, startSize.Y.Offset + delta.Y * (anchor.Y == 0 and 1 or -1))
-		local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + (anchor.X == 1 and delta.X or 0),
-		                         startPos.Y.Scale, startPos.Y.Offset + (anchor.Y == 1 and delta.Y or 0))
-		frame.Size = newSize
-		frame.Position = newPos
-	end
-end)
-
-UIS.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		draggingCorner = nil
-	end
-end)
-
-function makeButton(text, y, toggleFn, incFn, decFn)
-	local lbl = Instance.new("TextButton", frame)
-	lbl.Size = UDim2.new(1, -10, 0, 25)
-	lbl.Position = UDim2.new(0, 5, 0, y)
-	lbl.BackgroundColor3 = Color3.new(0, 0, 0)
-	lbl.BorderColor3 = Color3.new(1, 0, 0)
-	lbl.TextColor3 = Color3.new(1,1,1)
-	lbl.Text = text
-	lbl.TextScaled = true
-	lbl.MouseButton1Click:Connect(toggleFn)
-
-	if incFn and decFn then
-		local minus = Instance.new("TextButton", lbl)
-		minus.Text = "-"
-		minus.Size = UDim2.new(0, 25, 1, 0)
-		minus.Position = UDim2.new(1, -75, 0, 0)
-		minus.TextColor3 = Color3.new(1,1,1)
-		minus.BackgroundColor3 = Color3.new(0,0,0)
-		minus.BorderColor3 = Color3.new(1,0,0)
-		minus.MouseButton1Click:Connect(decFn)
-
-		local plus = Instance.new("TextButton", lbl)
-		plus.Text = "+"
-		plus.Size = UDim2.new(0, 25, 1, 0)
-		plus.Position = UDim2.new(1, -25, 0, 0)
-		plus.TextColor3 = Color3.new(1,1,1)
-		plus.BackgroundColor3 = Color3.new(0,0,0)
-		plus.BorderColor3 = Color3.new(1,0,0)
-		plus.MouseButton1Click:Connect(incFn)
-
-		local val = Instance.new("TextLabel", lbl)
-		val.Text = "0"
-		val.Size = UDim2.new(0, 25, 1, 0)
-		val.Position = UDim2.new(1, -50, 0, 0)
-		val.TextColor3 = Color3.new(1,1,1)
-		val.BackgroundTransparency = 1
-		val.Name = "Value"
-	end
-
-	return lbl
-end
-
-local spdBtn = makeButton("speed", 10,
-	function() speedEnabled = not speedEnabled end,
-	function() speed += 25 spdBtn.Value.Text = tostring(speed) end,
-	function() speed -= 25 spdBtn.Value.Text = tostring(speed) end
+local flyToggle = false
+local flyDisplay = createLine("fly", flySpeed,
+	function() flySpeed = math.max(0, flySpeed - 25) end,
+	function() flySpeed = flySpeed + 25 end,
+	function() flyToggle = not flyToggle end
 )
-spdBtn.Value.Text = tostring(speed)
 
-local flyBtn = makeButton("fly", 40,
-	function() flyEnabled = not flyEnabled end,
-	function() flySpeed += 25 flyBtn.Value.Text = tostring(flySpeed) end,
-	function() flySpeed -= 25 flyBtn.Value.Text = tostring(flySpeed) end
-)
-flyBtn.Value.Text = tostring(flySpeed)
+-- ESP
+local function createESP(plr)
+	if plr.Character and not plr.Character:FindFirstChild("ESP") and plr ~= p then
+		local bb = Instance.new("BillboardGui", plr.Character)
+		bb.Name = "ESP"
+		bb.Size = UDim2.new(0, 100, 0, 20)
+		bb.StudsOffset = Vector3.new(0, 3, 0)
+		bb.AlwaysOnTop = true
+		bb.Adornee = plr.Character:FindFirstChild("Head")
 
-makeButton("kill aura", 70, function()
-	auraEnabled = not auraEnabled
-end)
+		local tx = Instance.new("TextLabel", bb)
+		tx.Size = UDim2.new(1, 0, 1, 0)
+		tx.BackgroundTransparency = 1
+		tx.Text = plr.Name
+		tx.TextColor3 = Color3.new(1, 0, 0)
+		tx.TextScaled = false
+		tx.TextSize = 6
+	end
+end
 
-function createESP(player)
-	if player == lp then return end
-	player.CharacterAdded:Connect(function()
+for _, pl in pairs(game.Players:GetPlayers()) do createESP(pl) end
+game.Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function()
 		wait(1)
-		local head = player.Character:FindFirstChild("Head")
-		if head and not head:FindFirstChild("ESP") then
-			local bill = Instance.new("BillboardGui", head)
-			bill.Name = "ESP"
-			bill.Size = UDim2.new(0,100,0,6)
-			bill.Adornee = head
-			bill.AlwaysOnTop = true
-
-			local lbl = Instance.new("TextLabel", bill)
-			lbl.Text = player.Name
-			lbl.Size = UDim2.new(1,0,1,0)
-			lbl.BackgroundTransparency = 1
-			lbl.TextColor3 = Color3.new(1,0,0)
-			lbl.TextScaled = true
-		end
+		createESP(plr)
 	end)
-end
+end)
 
-for _, p in pairs(Players:GetPlayers()) do createESP(p) end
-Players.PlayerAdded:Connect(createESP)
-
-RunService.RenderStepped:Connect(function()
-	if auraEnabled then
-		for _, p in pairs(Players:GetPlayers()) do
-			if p ~= lp and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character:FindFirstChild("HumanoidRootPart") then
-				p.Character.Humanoid:TakeDamage(50)
+-- Kill Aura
+local function killAura()
+	if not p.Character then return end
+	local root = p.Character:FindFirstChild("HumanoidRootPart")
+	for _, pl in pairs(game.Players:GetPlayers()) do
+		if pl ~= p and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
+			local hrp2 = pl.Character.HumanoidRootPart
+			if (hrp2.Position - root.Position).Magnitude < 20 then
+				local hum = pl.Character:FindFirstChildOfClass("Humanoid")
+				if hum and hum.Health > 0 then
+					hum:TakeDamage(100)
+				end
 			end
 		end
 	end
+end
+
+local killBtn = Instance.new("TextButton", menu)
+killBtn.Size = UDim2.new(0, 110, 0, 25)
+killBtn.Position = UDim2.new(0, 10, 0, 80)
+killBtn.Text = "kill aura"
+killBtn.BackgroundColor3 = Color3.new(0, 0, 0)
+killBtn.BorderColor3 = Color3.fromRGB(255, 0, 0)
+killBtn.TextColor3 = Color3.new(1, 1, 1)
+killBtn.BorderSizePixel = 2
+killBtn.MouseButton1Click:Connect(killAura)
+
+-- Movement handler
+local direction = Vector3.zero
+UIS.InputBegan:Connect(function(i, g)
+	if g then return end
+	if i.KeyCode == Enum.KeyCode.W then direction = direction + Vector3.new(0,0,-1) end
+	if i.KeyCode == Enum.KeyCode.S then direction = direction + Vector3.new(0,0,1) end
+	if i.KeyCode == Enum.KeyCode.A then direction = direction + Vector3.new(-1,0,0) end
+	if i.KeyCode == Enum.KeyCode.D then direction = direction + Vector3.new(1,0,0) end
+	if i.KeyCode == Enum.KeyCode.Space then direction = direction + Vector3.new(0,1,0) end
+	if i.KeyCode == Enum.KeyCode.LeftShift then direction = direction + Vector3.new(0,-1,0) end
+end)
+UIS.InputEnded:Connect(function(i)
+	if i.KeyCode == Enum.KeyCode.W then direction = direction - Vector3.new(0,0,-1) end
+	if i.KeyCode == Enum.KeyCode.S then direction = direction - Vector3.new(0,0,1) end
+	if i.KeyCode == Enum.KeyCode.A then direction = direction - Vector3.new(-1,0,0) end
+	if i.KeyCode == Enum.KeyCode.D then direction = direction - Vector3.new(1,0,0) end
+	if i.KeyCode == Enum.KeyCode.Space then direction = direction - Vector3.new(0,1,0) end
+	if i.KeyCode == Enum.KeyCode.LeftShift then direction = direction - Vector3.new(0,-1,0) end
 end)
 
-RunService.RenderStepped:Connect(function()
-	local char = lp.Character
-	if char then
-		local hum = char:FindFirstChildOfClass("Humanoid")
-		if hum then
-			hum.WalkSpeed = speedEnabled and speed or 16
-		end
-	end
+RS.RenderStepped:Connect(function()
+	char = p.Character
+	if not char then return end
+	hum = char:FindFirstChildOfClass("Humanoid")
+	hrp = char:FindFirstChild("HumanoidRootPart")
 
-	if flyEnabled and char and char:FindFirstChild("HumanoidRootPart") then
-		if not char.HumanoidRootPart:FindFirstChild("FlyForce") then
-			local bv = Instance.new("BodyVelocity")
-			bv.Name = "FlyForce"
-			bv.MaxForce = Vector3.new(1e5,1e5,1e5)
-			bv.Velocity = Vector3.zero
-			bv.Parent = char.HumanoidRootPart
-		end
+	if hum and wsToggle then hum.WalkSpeed = ws else hum.WalkSpeed = 16 end
 
+	if flyToggle and hrp then
 		local cam = workspace.CurrentCamera
-		local move = Vector3.zero
-		if UIS:IsKeyDown(Enum.KeyCode.W) then move += cam.CFrame.LookVector end
-		if UIS:IsKeyDown(Enum.KeyCode.S) then move -= cam.CFrame.LookVector end
-		if UIS:IsKeyDown(Enum.KeyCode.A) then move -= cam.CFrame.RightVector end
-		if UIS:IsKeyDown(Enum.KeyCode.D) then move += cam.CFrame.RightVector end
-		if UIS:IsKeyDown(Enum.KeyCode.Space) then move += Vector3.new(0,1,0) end
-		if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then move -= Vector3.new(0,1,0) end
-
-		char.HumanoidRootPart.FlyForce.Velocity = move.Unit * flySpeed
-	else
-		if char and char:FindFirstChild("HumanoidRootPart") and char.HumanoidRootPart:FindFirstChild("FlyForce") then
-			char.HumanoidRootPart.FlyForce:Destroy()
-		end
+		hrp.Velocity = (cam.CFrame:VectorToWorldSpace(direction)) * flySpeed
+	elseif hrp then
+		hrp.Velocity = Vector3.zero
 	end
 end)
