@@ -1,31 +1,19 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local UIS = game:GetService("UserInputService")
-local TeleportTarget = nil
-local walkspeed = 16
-
 local screen = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
 screen.ResetOnSpawn = false
 
+local walkspeed = 16
+
 local frame = Instance.new("Frame", screen)
 frame.Position = UDim2.new(0, 50, 0, 50)
-frame.Size = UDim2.new(0, 300, 0, 180)
+frame.Size = UDim2.new(0, 300, 0, 260)
 frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 frame.BorderColor3 = Color3.fromRGB(255, 0, 0)
 
 local uilist = Instance.new("UIListLayout", frame)
 uilist.SortOrder = Enum.SortOrder.LayoutOrder
 uilist.Padding = UDim.new(0, 6)
-
-local function createLabel(text)
-	local label = Instance.new("TextLabel", frame)
-	label.Size = UDim2.new(1, 0, 0, 30)
-	label.Text = text
-	label.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	label.TextColor3 = Color3.new(1, 1, 1)
-	label.TextScaled = true
-	label.LayoutOrder = 0
-end
 
 local speedControl = Instance.new("Frame", frame)
 speedControl.Size = UDim2.new(1, 0, 0, 30)
