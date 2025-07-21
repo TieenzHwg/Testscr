@@ -1,7 +1,6 @@
 local p = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", p:WaitForChild("PlayerGui"))
 
--- Nút mở menu
 local btn = Instance.new("TextButton", gui)
 btn.Size = UDim2.new(0,25,0,25)
 btn.Position = UDim2.new(0,10,0,10)
@@ -12,7 +11,6 @@ btn.Text = ""
 btn.Active = true
 btn.Draggable = true
 
--- Menu chính
 local menu = Instance.new("Frame", gui)
 menu.Size = UDim2.new(0,220,0,100)
 menu.Position = UDim2.new(0,40,0,50)
@@ -23,7 +21,6 @@ menu.Visible = false
 menu.Active = true
 menu.Draggable = true
 
--- Resize bằng viền
 local uis = game:GetService("UserInputService")
 local resizing = false
 local startPos, startSize
@@ -96,10 +93,10 @@ local function updateSpeed()
 	speedDisp.Text = tostring(speed)
 end
 speedPlus.MouseButton1Click:Connect(function()
-	speed += 50; updateSpeed()
+	speed += 50 updateSpeed()
 end)
 speedMinus.MouseButton1Click:Connect(function()
-	speed = math.max(0, speed - 50); updateSpeed()
+	speed = math.max(0, speed - 50) updateSpeed()
 end)
 updateSpeed()
 
