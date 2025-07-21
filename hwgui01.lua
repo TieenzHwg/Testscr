@@ -7,7 +7,7 @@ local function startScript()
 
 	local main = Instance.new("Frame", gui)
 	main.Position = UDim2.new(0, 50, 0, 100)
-	main.Size = UDim2.new(0, 240, 0, 140)
+	main.Size = UDim2.new(0, 240, 0, 110)
 	main.BackgroundColor3 = Color3.new(0, 0, 0)
 	main.BorderColor3 = Color3.fromRGB(255, 0, 0)
 	main.BorderSizePixel = 2
@@ -87,14 +87,9 @@ local function startScript()
 		end
 	end)
 
-	local auraEspRow = Instance.new("Frame", main)
-	auraEspRow.Size = UDim2.new(1, -20, 0, 30)
-	auraEspRow.Position = UDim2.new(0, 10, 0, 80)
-	auraEspRow.BackgroundTransparency = 1
-
-	local auraBtn = Instance.new("TextButton", auraEspRow)
-	auraBtn.Size = UDim2.new(0.5, -5, 1, 0)
-	auraBtn.Position = UDim2.new(0, 0, 0, 0)
+	local auraBtn = Instance.new("TextButton", main)
+	auraBtn.Size = UDim2.new(1, -20, 0, 30)
+	auraBtn.Position = UDim2.new(0, 10, 0, 80)
 	auraBtn.Text = "Kill Aura"
 	auraBtn.TextColor3 = Color3.new(1,1,1)
 	auraBtn.BackgroundColor3 = Color3.new(0,0,0)
@@ -108,21 +103,12 @@ local function startScript()
 		end
 	end)
 
-	local espBtn = Instance.new("TextButton", auraEspRow)
-	espBtn.Size = UDim2.new(0.5, -5, 1, 0)
-	espBtn.Position = UDim2.new(0.5, 5, 0, 0)
-	espBtn.Text = "ESP"
-	espBtn.TextColor3 = Color3.new(1,1,1)
-	espBtn.BackgroundColor3 = Color3.new(0,0,0)
-	espBtn.BorderColor3 = Color3.fromRGB(255,0,0)
-	espBtn.BorderSizePixel = 1
-
-	local function createESP(plr)
+	-- ESP toàn server (auto update)
+	local function applyESP(plr)
 		if plr == lp then return end
-		plr.CharacterAdded:Connect(function(char)
-			wait(1)
-			local head = char:WaitForChild("Head", 3)
-			if head then
+		local function setup(char)
+			local head = char:WaitForChild("Head", 5)
+			if head and not head:FindFirstChild("ESP") then
 				local esp = Instance.new("BillboardGui", head)
 				esp.Name = "ESP"
 				esp.Adornee = head
@@ -136,13 +122,16 @@ local function startScript()
 				label.TextScaled = true
 				label.TextSize = 6
 			end
-		end)
+		end
+
+		if plr.Character then setup(plr.Character) end
+		plr.CharacterAdded:Connect(setup)
 	end
 
-	for _, p in pairs(Players:GetPlayers()) do createESP(p) end
-	Players.PlayerAdded:Connect(createESP)
+	for _, p in pairs(Players:GetPlayers()) do applyESP(p) end
+	Players.PlayerAdded:Connect(applyESP)
 
-	-- Fly loop
+	-- Fly
 	local uis = game:GetService("UserInputService")
 	local rs = game:GetService("RunService")
 	local flying = Vector3.new()
