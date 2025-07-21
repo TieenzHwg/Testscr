@@ -1,127 +1,153 @@
 local players = game:GetService("Players")
 local player = players.LocalPlayer
-local mouse = player:GetMouse()
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 
-local espEnabled = false
-local walkSpeed = 25
-local targetPlayer = nil
+-- MAIN MENU
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 400, 0, 300)
+main.Position = UDim2.new(0, 50, 0, 50)
+main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+main.BackgroundTransparency = 0.3
+main.BorderColor3 = Color3.fromRGB(255, 0, 0)
 
-local espTab = Instance.new("Frame")
-espTab.Size = UDim2.new(0, 300, 0, 150)
-espTab.Position = UDim2.new(0, 0, 0, 100)
-espTab.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-espTab.BackgroundTransparency = 0.5
-espTab.Parent = player.PlayerGui
+-- WALK SPEED SECTION
+local walkLabel = Instance.new("TextLabel", main)
+walkLabel.Text = "Walk Speed"
+walkLabel.Size = UDim2.new(0, 100, 0, 30)
+walkLabel.Position = UDim2.new(0, 10, 0, 10)
+walkLabel.TextColor3 = Color3.new(1, 1, 1)
+walkLabel.BackgroundTransparency = 1
 
-local walkSpeedLabel = Instance.new("TextLabel")
-walkSpeedLabel.Size = UDim2.new(0, 200, 0, 50)
-walkSpeedLabel.Position = UDim2.new(0, 50, 0, 20)
-walkSpeedLabel.Text = "Walk Speed: " .. walkSpeed
-walkSpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-walkSpeedLabel.BackgroundTransparency = 1
-walkSpeedLabel.Parent = espTab
+local speed = 25
 
-local walkSpeedMinus = Instance.new("TextButton")
-walkSpeedMinus.Size = UDim2.new(0, 50, 0, 50)
-walkSpeedMinus.Position = UDim2.new(0, 0, 0, 20)
-walkSpeedMinus.Text = "-"
-walkSpeedMinus.TextColor3 = Color3.fromRGB(255, 255, 255)
-walkSpeedMinus.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-walkSpeedMinus.Parent = espTab
+local minus = Instance.new("TextButton", main)
+minus.Text = "-"
+minus.Size = UDim2.new(0, 30, 0, 30)
+minus.Position = UDim2.new(0, 120, 0, 10)
+minus.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+minus.TextColor3 = Color3.new(1, 1, 1)
 
-local walkSpeedPlus = Instance.new("TextButton")
-walkSpeedPlus.Size = UDim2.new(0, 50, 0, 50)
-walkSpeedPlus.Position = UDim2.new(0, 250, 0, 20)
-walkSpeedPlus.Text = "+"
-walkSpeedPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
-walkSpeedPlus.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-walkSpeedPlus.Parent = espTab
+local number = Instance.new("TextLabel", main)
+number.Text = tostring(speed)
+number.Size = UDim2.new(0, 50, 0, 30)
+number.Position = UDim2.new(0, 160, 0, 10)
+number.BackgroundTransparency = 1
+number.TextColor3 = Color3.new(1, 1, 1)
 
-local teleportTab = Instance.new("Frame")
-teleportTab.Size = UDim2.new(0, 300, 0, 150)
-teleportTab.Position = UDim2.new(0, 0, 0, 270)
-teleportTab.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-teleportTab.BackgroundTransparency = 0.5
-teleportTab.Parent = player.PlayerGui
+local plus = Instance.new("TextButton", main)
+plus.Text = "+"
+plus.Size = UDim2.new(0, 30, 0, 30)
+plus.Position = UDim2.new(0, 220, 0, 10)
+plus.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+plus.TextColor3 = Color3.new(1, 1, 1)
 
-local teleportLabel = Instance.new("TextLabel")
-teleportLabel.Size = UDim2.new(0, 200, 0, 50)
-teleportLabel.Position = UDim2.new(0, 50, 0, 20)
-teleportLabel.Text = "Teleport Player"
-teleportLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-teleportLabel.BackgroundTransparency = 1
-teleportLabel.Parent = teleportTab
+local toggleSpeed = Instance.new("TextButton", main)
+toggleSpeed.Text = "🟢"
+toggleSpeed.Size = UDim2.new(0, 30, 0, 30)
+toggleSpeed.Position = UDim2.new(0, 270, 0, 10)
+toggleSpeed.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggleSpeed.TextColor3 = Color3.new(0, 1, 0)
 
-local usernameTextbox = Instance.new("TextBox")
-usernameTextbox.Size = UDim2.new(0, 200, 0, 50)
-usernameTextbox.Position = UDim2.new(0, 50, 0, 80)
-usernameTextbox.Text = ""
-usernameTextbox.PlaceholderText = "Enter Username"
-usernameTextbox.TextColor3 = Color3.fromRGB(255, 255, 255)
-usernameTextbox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-usernameTextbox.Parent = teleportTab
+local speedOn = true
 
-local playerListDropdown = Instance.new("TextButton")
-playerListDropdown.Size = UDim2.new(0, 100, 0, 50)
-playerListDropdown.Position = UDim2.new(0, 250, 0, 80)
-playerListDropdown.Text = "↓"
-playerListDropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
-playerListDropdown.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-playerListDropdown.Parent = teleportTab
+plus.MouseButton1Click:Connect(function()
+	speed += 25
+	number.Text = tostring(speed)
+	if speedOn and player.Character and player.Character:FindFirstChild("Humanoid") then
+		player.Character.Humanoid.WalkSpeed = speed
+	end
+end)
 
-local playerListFrame = Instance.new("ScrollingFrame")
-playerListFrame.Size = UDim2.new(0, 200, 0, 150)
-playerListFrame.Position = UDim2.new(0, 50, 0, 150)
-playerListFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-playerListFrame.BackgroundTransparency = 0.5
-playerListFrame.Visible = false
-playerListFrame.Parent = teleportTab
+minus.MouseButton1Click:Connect(function()
+	speed -= 25
+	number.Text = tostring(speed)
+	if speedOn and player.Character and player.Character:FindFirstChild("Humanoid") then
+		player.Character.Humanoid.WalkSpeed = speed
+	end
+end)
 
-local function updatePlayerList()
-    for _, child in pairs(playerListFrame:GetChildren()) do
-        if child:IsA("TextButton") then
-            child:Destroy()
-        end
-    end
+toggleSpeed.MouseButton1Click:Connect(function()
+	speedOn = not speedOn
+	toggleSpeed.TextColor3 = speedOn and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+	if speedOn and player.Character and player.Character:FindFirstChild("Humanoid") then
+		player.Character.Humanoid.WalkSpeed = speed
+	else
+		player.Character.Humanoid.WalkSpeed = 16
+	end
+end)
 
-    for _, otherPlayer in pairs(players:GetPlayers()) do
-        if otherPlayer ~= player then
-            local playerButton = Instance.new("TextButton")
-            playerButton.Size = UDim2.new(0, 200, 0, 50)
-            playerButton.Text = "@" .. otherPlayer.Name
-            playerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            playerButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            playerButton.Parent = playerListFrame
-            playerButton.MouseButton1Click:Connect(function()
-                usernameTextbox.Text = otherPlayer.Name
-                playerListFrame.Visible = false
-            end)
-        end
-    end
+-- TELEPORT SECTION
+local tpLabel = Instance.new("TextLabel", main)
+tpLabel.Text = "Teleport Player"
+tpLabel.Size = UDim2.new(0, 150, 0, 30)
+tpLabel.Position = UDim2.new(0, 10, 0, 60)
+tpLabel.TextColor3 = Color3.new(1, 1, 1)
+tpLabel.BackgroundTransparency = 1
+
+local usernameBox = Instance.new("TextBox", main)
+usernameBox.PlaceholderText = "Enter @username"
+usernameBox.Size = UDim2.new(0, 200, 0, 30)
+usernameBox.Position = UDim2.new(0, 10, 0, 100)
+usernameBox.TextColor3 = Color3.new(1, 1, 1)
+usernameBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+
+local tpToggle = Instance.new("TextButton", main)
+tpToggle.Text = "🟢"
+tpToggle.Size = UDim2.new(0, 30, 0, 30)
+tpToggle.Position = UDim2.new(0, 220, 0, 100)
+tpToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+tpToggle.TextColor3 = Color3.new(0, 1, 0)
+
+local tpOn = true
+
+tpToggle.MouseButton1Click:Connect(function()
+	tpOn = not tpOn
+	tpToggle.TextColor3 = tpOn and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	if tpOn and usernameBox.Text ~= "" then
+		local name = usernameBox.Text:gsub("@", "")
+		local target = players:FindFirstChild(name)
+		if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+			if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+				player.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+			end
+		end
+	end
+end)
+
+-- ESP
+local function addESP(plr)
+	local box = Instance.new("BillboardGui", plr.Character)
+	box.Name = "esp_box"
+	box.Size = UDim2.new(0, 100, 0, 40)
+	box.Adornee = plr.Character:WaitForChild("Head")
+	box.AlwaysOnTop = true
+
+	local label = Instance.new("TextLabel", box)
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = "@" .. plr.Name
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.TextScaled = true
 end
 
-playerListDropdown.MouseButton1Click:Connect(function()
-    playerListFrame.Visible = not playerListFrame.Visible
-    if playerListFrame.Visible then
-        updatePlayerList()
-    end
-end)
+for _, p in pairs(players:GetPlayers()) do
+	if p ~= player then
+		p.CharacterAdded:Connect(function()
+			wait(1)
+			addESP(p)
+		end)
+		if p.Character then
+			addESP(p)
+		end
+	end
+end
 
-walkSpeedMinus.MouseButton1Click:Connect(function()
-    walkSpeed = walkSpeed - 25
-    walkSpeedLabel.Text = "Walk Speed: " .. walkSpeed
-    player.Character.Humanoid.WalkSpeed = walkSpeed
-end)
-
-walkSpeedPlus.MouseButton1Click:Connect(function()
-    walkSpeed = walkSpeed + 25
-    walkSpeedLabel.Text = "Walk Speed: " .. walkSpeed
-    player.Character.Humanoid.WalkSpeed = walkSpeed
-end)
-
-usernameTextbox.FocusLost:Connect(function()
-    local target = players:FindFirstChild(usernameTextbox.Text)
-    if target then
-        targetPlayer = target
-    end
+players.PlayerAdded:Connect(function(p)
+	p.CharacterAdded:Connect(function()
+		wait(1)
+		addESP(p)
+	end)
 end)
