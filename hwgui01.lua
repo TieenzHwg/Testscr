@@ -1,7 +1,6 @@
 local p = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", p:WaitForChild("PlayerGui"))
 
--- Nút mở menu
 local btn = Instance.new("TextButton", gui)
 btn.Size = UDim2.new(0,25,0,25)
 btn.Position = UDim2.new(0,10,0,10)
@@ -12,7 +11,6 @@ btn.Text = ""
 btn.Active = true
 btn.Draggable = true
 
--- Menu chính
 local menu = Instance.new("Frame", gui)
 menu.Size = UDim2.new(0,220,0,100)
 menu.Position = UDim2.new(0,40,0,50)
@@ -23,19 +21,20 @@ menu.Visible = false
 menu.Active = true
 menu.Draggable = true
 
--- Resize góc
 local resize = Instance.new("UISizeConstraint", menu)
 resize.MinSize = Vector2.new(220, 100)
 resize.MaxSize = Vector2.new(400, 400)
+
 local resizer = Instance.new("TextButton", menu)
 resizer.Size = UDim2.new(0,20,0,20)
 resizer.Position = UDim2.new(1, -20, 1, -20)
 resizer.AnchorPoint = Vector2.new(1,1)
-resizer.Text = "↘"
+resizer.Text = ""
 resizer.BackgroundColor3 = Color3.fromRGB(40,40,40)
 resizer.BorderColor3 = Color3.fromRGB(255,0,0)
 resizer.BorderSizePixel = 2
 resizer.TextColor3 = Color3.new(1,1,1)
+
 resizer.MouseButton1Down:Connect(function()
     local uis = game:GetService("UserInputService")
     local startPos = uis:GetMouseLocation()
@@ -57,12 +56,11 @@ btn.MouseButton1Click:Connect(function()
     menu.Visible = not menu.Visible
 end)
 
--- Tạo nút
-local function createButton(text, x, y)
+local function createButton(x, y)
     local b = Instance.new("TextButton", menu)
     b.Position = UDim2.new(0,x,0,y)
     b.Size = UDim2.new(0,30,0,20)
-    b.Text = text
+    b.Text = ""
     b.BackgroundColor3 = Color3.fromRGB(40,40,40)
     b.BorderColor3 = Color3.fromRGB(255,0,0)
     b.BorderSizePixel = 2
@@ -82,11 +80,10 @@ local function createDisplay(x, y, text)
     return d
 end
 
--- Speed Controls
 local speed = 50
-local speedMinus = createButton("-", 10, 10)
+local speedMinus = createButton(10, 10)
 local speedDisp = createDisplay(40, 10, tostring(speed))
-local speedPlus = createButton("+", 100, 10)
+local speedPlus = createButton(100, 10)
 
 local function updateSpeed()
     local h = p.Character and p.Character:FindFirstChildOfClass("Humanoid")
@@ -101,11 +98,10 @@ speedMinus.MouseButton1Click:Connect(function()
 end)
 updateSpeed()
 
--- ESP Controls
 local espSize = 6
-local espMinus = createButton("-", 10, 40)
+local espMinus = createButton(10, 40)
 local espDisp = createDisplay(40, 40, tostring(espSize))
-local espPlus = createButton("+", 100, 40)
+local espPlus = createButton(100, 40)
 local espList = {}
 
 local function clearESP()
@@ -138,17 +134,8 @@ local function createESP()
     end
 end
 
-espPlus.MouseButton1Click:Connect(function()
-    espSize += 1
-    espDisp.Text = tostring(espSize)
-    createESP()
-end)
-espMinus.MouseButton1Click:Connect(function()
-    espSize = math.max(1, espSize - 1)
-    espDisp.Text = tostring(espSize)
-    createESP()
-end)
-
+espPlus.MouseButton1Click:Connect(createESP)
+espMinus.MouseButton1Click:Connect(createESP)
 game.Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(function()
         wait(1)
@@ -156,10 +143,11 @@ game.Players.PlayerAdded:Connect(function(plr)
     end)
 end)
 createESP()
+
 local killBtn = Instance.new("TextButton", menu)
 killBtn.Size = UDim2.new(0, 200, 0, 25)
 killBtn.Position = UDim2.new(0, 10, 0, 65)
-killBtn.Text = "Kill All"
+killBtn.Text = ""
 killBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
 killBtn.BorderColor3 = Color3.fromRGB(255,0,0)
 killBtn.BorderSizePixel = 2
@@ -171,7 +159,7 @@ killBtn.MouseButton1Click:Connect(function()
 	local tool = char:FindFirstChildOfClass("Tool")
 	if not tool or not tool:FindFirstChild("Handle") then return end
 
-	for _, target in pairs(Players:GetPlayers()) do
+	for _, target in pairs(game.Players:GetPlayers()) do
 		if target ~= p and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
 			firetouchinterest(tool.Handle, target.Character.HumanoidRootPart, 0)
 			wait()
