@@ -56,4 +56,23 @@ local speed = 16
 local function updateSpeed()
 	local human = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
 	if human then
-		human.WalkSpeed
+		human.WalkSpeed = speed
+	end
+	SpeedDisplay.Text = tostring(speed)
+end
+
+MinusButton.MouseButton1Click:Connect(function()
+	speed = math.max(0, speed - 1)
+	updateSpeed()
+end)
+
+PlusButton.MouseButton1Click:Connect(function()
+	speed = speed + 1
+	updateSpeed()
+end)
+
+MainButton.MouseButton1Click:Connect(function()
+	MenuFrame.Visible = not MenuFrame.Visible
+end)
+
+updateSpeed()
