@@ -17,42 +17,41 @@ menu.Position = UDim2.new(0,40,0,50)
 menu.BackgroundColor3 = Color3.fromRGB(0,0,0)
 menu.BorderColor3 = Color3.fromRGB(255,0,0)
 menu.BorderSizePixel = 2
-menu.Visible = false
 menu.Active = true
 menu.Draggable = true
+menu.Visible = false
 
 local uis = game:GetService("UserInputService")
-local resizing = false
-local startPos, startSize
-
-menu.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		local mPos = uis:GetMouseLocation()
-		local frameAbsPos = menu.AbsolutePosition
-		local frameAbsSize = menu.AbsoluteSize
-		local edgeSize = 10
-		if mPos.X >= frameAbsPos.X + frameAbsSize.X - edgeSize and mPos.Y >= frameAbsPos.Y + frameAbsSize.Y - edgeSize then
-			resizing = true
-			startPos = mPos
-			startSize = menu.Size
-		end
-	end
-end)
-
-uis.InputChanged:Connect(function(input)
-	if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
-		local delta = uis:GetMouseLocation() - startPos
-		local newX = math.clamp(startSize.X.Offset + delta.X, 220, 400)
-		local newY = math.clamp(startSize.Y.Offset + delta.Y, 100, 400)
-		menu.Size = UDim2.fromOffset(newX, newY)
-	end
-end)
-
-uis.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		resizing = false
-	end
-end)
+local corners = {
+	Vector2.new(0, 0), Vector2.new(0.5, 0), Vector2.new(1, 0),
+	Vector2.new(0, 0.5),                   Vector2.new(1, 0.5),
+	Vector2.new(0, 1), Vector2.new(0.5, 1), Vector2.new(1, 1)
+}
+for _, anchor in ipairs(corners) do
+	local r = Instance.new("TextButton", menu)
+	r.Size = UDim2.new(0, 10, 0, 10)
+	r.AnchorPoint = anchor
+	r.Position = UDim2.new(anchor.X, 0, anchor.Y, 0)
+	r.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+	r.Text = ""
+	r.AutoButtonColor = false
+	r.MouseButton1Down:Connect(function()
+		local startPos = uis:GetMouseLocation()
+		local startSize = menu.Size
+		local startPosMenu = menu.Position
+		local conn
+		conn = uis.InputChanged:Connect(function(i)
+			if i.UserInputType == Enum.UserInputType.MouseMovement then
+				local delta = uis:GetMouseLocation() - startPos
+				local newW = math.clamp(startSize.X.Offset + delta.X * (anchor.X == 1 and 1 or (anchor.X == 0 and -1 or 0)), 150, 400)
+				local newH = math.clamp(startSize.Y.Offset + delta.Y * (anchor.Y == 1 and 1 or (anchor.Y == 0 and -1 or 0)), 80, 400)
+				menu.Size = UDim2.new(0, newW, 0, newH)
+			end
+		end)
+		uis.InputEnded:Wait()
+		conn:Disconnect()
+	end)
+end
 
 btn.MouseButton1Click:Connect(function()
 	menu.Visible = not menu.Visible
@@ -86,17 +85,16 @@ local speed = 50
 local speedMinus = createButton("-", 10, 10)
 local speedDisp = createDisplay(40, 10, tostring(speed))
 local speedPlus = createButton("+", 100, 10)
-
 local function updateSpeed()
 	local h = p.Character and p.Character:FindFirstChildOfClass("Humanoid")
 	if h then h.WalkSpeed = speed end
 	speedDisp.Text = tostring(speed)
 end
 speedPlus.MouseButton1Click:Connect(function()
-	speed += 50 updateSpeed()
+	speed += 25 updateSpeed()
 end)
 speedMinus.MouseButton1Click:Connect(function()
-	speed = math.max(0, speed - 50) updateSpeed()
+	speed = math.max(0, speed - 25) updateSpeed()
 end)
 updateSpeed()
 
@@ -105,14 +103,12 @@ local espMinus = createButton("-", 10, 40)
 local espDisp = createDisplay(40, 40, tostring(espSize))
 local espPlus = createButton("+", 100, 40)
 local espList = {}
-
 local function clearESP()
 	for _, v in ipairs(espList) do
 		if v and v.Parent then v:Destroy() end
 	end
 	espList = {}
 end
-
 local function createESP()
 	clearESP()
 	for _, plr in pairs(game.Players:GetPlayers()) do
@@ -130,23 +126,17 @@ local function createESP()
 			tx.TextColor3 = Color3.fromRGB(255,0,0)
 			tx.TextStrokeTransparency = 0.5
 			tx.TextScaled = false
-			tx.TextSize = espSize
+			tx.TextSize = 6
 			table.insert(espList, bb)
 		end
 	end
 end
-
 espPlus.MouseButton1Click:Connect(function()
-	espSize += 1
-	espDisp.Text = tostring(espSize)
 	createESP()
 end)
 espMinus.MouseButton1Click:Connect(function()
-	espSize = math.max(1, espSize - 1)
-	espDisp.Text = tostring(espSize)
 	createESP()
 end)
-
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(function()
 		wait(1)
