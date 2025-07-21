@@ -12,7 +12,7 @@ btn.Active = true
 btn.Draggable = true
 
 local menu = Instance.new("Frame", gui)
-menu.Size = UDim2.new(0,220,0,100)
+menu.Size = UDim2.new(0,240,0,130)
 menu.Position = UDim2.new(0,40,0,50)
 menu.BackgroundColor3 = Color3.fromRGB(0,0,0)
 menu.BorderColor3 = Color3.fromRGB(255,0,0)
@@ -21,46 +21,14 @@ menu.Active = true
 menu.Draggable = true
 menu.Visible = false
 
-local uis = game:GetService("UserInputService")
-local corners = {
-	Vector2.new(0, 0), Vector2.new(0.5, 0), Vector2.new(1, 0),
-	Vector2.new(0, 0.5),                   Vector2.new(1, 0.5),
-	Vector2.new(0, 1), Vector2.new(0.5, 1), Vector2.new(1, 1)
-}
-for _, anchor in ipairs(corners) do
-	local r = Instance.new("TextButton", menu)
-	r.Size = UDim2.new(0, 10, 0, 10)
-	r.AnchorPoint = anchor
-	r.Position = UDim2.new(anchor.X, 0, anchor.Y, 0)
-	r.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-	r.Text = ""
-	r.AutoButtonColor = false
-	r.MouseButton1Down:Connect(function()
-		local startPos = uis:GetMouseLocation()
-		local startSize = menu.Size
-		local startPosMenu = menu.Position
-		local conn
-		conn = uis.InputChanged:Connect(function(i)
-			if i.UserInputType == Enum.UserInputType.MouseMovement then
-				local delta = uis:GetMouseLocation() - startPos
-				local newW = math.clamp(startSize.X.Offset + delta.X * (anchor.X == 1 and 1 or (anchor.X == 0 and -1 or 0)), 150, 400)
-				local newH = math.clamp(startSize.Y.Offset + delta.Y * (anchor.Y == 1 and 1 or (anchor.Y == 0 and -1 or 0)), 80, 400)
-				menu.Size = UDim2.new(0, newW, 0, newH)
-			end
-		end)
-		uis.InputEnded:Wait()
-		conn:Disconnect()
-	end)
-end
-
 btn.MouseButton1Click:Connect(function()
 	menu.Visible = not menu.Visible
 end)
 
-local function createButton(text, x, y)
+local function createButton(text, x, y, w, h)
 	local b = Instance.new("TextButton", menu)
 	b.Position = UDim2.new(0,x,0,y)
-	b.Size = UDim2.new(0,30,0,20)
+	b.Size = UDim2.new(0,w,0,h)
 	b.Text = text
 	b.BackgroundColor3 = Color3.fromRGB(40,40,40)
 	b.BorderColor3 = Color3.fromRGB(255,0,0)
@@ -69,10 +37,10 @@ local function createButton(text, x, y)
 	return b
 end
 
-local function createDisplay(x, y, text)
+local function createDisplay(x, y, w, h, text)
 	local d = Instance.new("TextLabel", menu)
 	d.Position = UDim2.new(0,x,0,y)
-	d.Size = UDim2.new(0,60,0,20)
+	d.Size = UDim2.new(0,w,0,h)
 	d.Text = text
 	d.BackgroundColor3 = Color3.fromRGB(30,30,30)
 	d.BorderColor3 = Color3.fromRGB(255,0,0)
@@ -81,34 +49,75 @@ local function createDisplay(x, y, text)
 	return d
 end
 
-local speed = 50
-local speedMinus = createButton("-", 10, 10)
-local speedDisp = createDisplay(40, 10, tostring(speed))
-local speedPlus = createButton("+", 100, 10)
-local function updateSpeed()
-	local h = p.Character and p.Character:FindFirstChildOfClass("Humanoid")
-	if h then h.WalkSpeed = speed end
-	speedDisp.Text = tostring(speed)
-end
-speedPlus.MouseButton1Click:Connect(function()
-	speed += 25 updateSpeed()
-end)
-speedMinus.MouseButton1Click:Connect(function()
-	speed = math.max(0, speed - 25) updateSpeed()
-end)
-updateSpeed()
+local speed = 16
+local speedEnabled = false
+local fly = false
+local flySpeed = 0
 
-local espSize = 6
-local espMinus = createButton("-", 10, 40)
-local espDisp = createDisplay(40, 40, tostring(espSize))
-local espPlus = createButton("+", 100, 40)
-local espList = {}
-local function clearESP()
-	for _, v in ipairs(espList) do
-		if v and v.Parent then v:Destroy() end
+local speedBtn = createButton("speed", 10, 10, 60, 25)
+local spMinus = createButton("-", 75, 10, 30, 25)
+local spDisp = createDisplay(110, 10, 40, 25, tostring(speed))
+local spPlus = createButton("+", 155, 10, 30, 25)
+local spToggle = createButton("⛶", 190, 10, 40, 25)
+
+local function applySpeed()
+	local h = p.Character and p.Character:FindFirstChildOfClass("Humanoid")
+	if h and speedEnabled then h.WalkSpeed = speed else h.WalkSpeed = 16 end
+end
+spPlus.MouseButton1Click:Connect(function() speed += 25 spDisp.Text = tostring(speed) applySpeed() end)
+spMinus.MouseButton1Click:Connect(function() speed = math.max(0, speed-25) spDisp.Text = tostring(speed) applySpeed() end)
+spToggle.MouseButton1Click:Connect(function() speedEnabled = not speedEnabled applySpeed() end)
+
+local flyBtn = createButton("fly", 10, 45, 60, 25)
+local flyMinus = createButton("-", 75, 45, 30, 25)
+local flyDisp = createDisplay(110, 45, 40, 25, tostring(flySpeed))
+local flyPlus = createButton("+", 155, 45, 30, 25)
+local flyToggle = createButton("⛶", 190, 45, 40, 25)
+
+local bodyGyro, bodyVel
+
+local function startFly()
+	local char = p.Character
+	if not char then return end
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+
+	bodyGyro = Instance.new("BodyGyro", root)
+	bodyGyro.P = 9e4
+	bodyGyro.MaxTorque = Vector3.new(9e9,9e9,9e9)
+	bodyGyro.CFrame = root.CFrame
+
+	bodyVel = Instance.new("BodyVelocity", root)
+	bodyVel.Velocity = Vector3.new(0,0,0)
+	bodyVel.MaxForce = Vector3.new(9e9,9e9,9e9)
+
+	game:GetService("RunService").RenderStepped:Connect(function()
+		if fly and bodyVel and root then
+			local cam = workspace.CurrentCamera
+			bodyGyro.CFrame = cam.CFrame
+			bodyVel.Velocity = cam.CFrame.LookVector * flySpeed
+		end
+	end)
+end
+
+flyPlus.MouseButton1Click:Connect(function() flySpeed += 25 flyDisp.Text = tostring(flySpeed) end)
+flyMinus.MouseButton1Click:Connect(function() flySpeed = math.max(0, flySpeed-25) flyDisp.Text = tostring(flySpeed) end)
+flyToggle.MouseButton1Click:Connect(function()
+	fly = not fly
+	if fly then startFly() else
+		if bodyGyro then bodyGyro:Destroy() end
+		if bodyVel then bodyVel:Destroy() end
 	end
+end)
+
+local espBtn = createButton("ESP", 10, 80, 100, 25)
+local espList = {}
+
+local function clearESP()
+	for _,v in ipairs(espList) do if v and v.Parent then v:Destroy() end end
 	espList = {}
 end
+
 local function createESP()
 	clearESP()
 	for _, plr in pairs(game.Players:GetPlayers()) do
@@ -131,39 +140,35 @@ local function createESP()
 		end
 	end
 end
-espPlus.MouseButton1Click:Connect(function()
+
+espBtn.MouseButton1Click:Connect(function()
 	createESP()
 end)
-espMinus.MouseButton1Click:Connect(function()
-	createESP()
-end)
+
 game.Players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(function()
 		wait(1)
 		createESP()
 	end)
 end)
+
 createESP()
 
-local killBtn = Instance.new("TextButton", menu)
-killBtn.Size = UDim2.new(0, 200, 0, 25)
-killBtn.Position = UDim2.new(0, 10, 0, 70)
-killBtn.Text = "Kill All"
-killBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
-killBtn.BorderColor3 = Color3.fromRGB(255,0,0)
-killBtn.BorderSizePixel = 2
-killBtn.TextColor3 = Color3.new(1,1,1)
+local killAuraBtn = createButton("Kill All", 120, 80, 110, 25)
 
-killBtn.MouseButton1Click:Connect(function()
+killAuraBtn.MouseButton1Click:Connect(function()
 	local char = p.Character
 	if not char then return end
 	local tool = char:FindFirstChildOfClass("Tool")
 	if not tool or not tool:FindFirstChild("Handle") then return end
+
 	for _, target in pairs(game.Players:GetPlayers()) do
 		if target ~= p and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-			firetouchinterest(tool.Handle, target.Character.HumanoidRootPart, 0)
-			wait()
-			firetouchinterest(tool.Handle, target.Character.HumanoidRootPart, 1)
+			for i = 1,10 do
+				firetouchinterest(tool.Handle, target.Character.HumanoidRootPart, 0)
+				wait()
+				firetouchinterest(tool.Handle, target.Character.HumanoidRootPart, 1)
+			end
 		end
 	end
 end)
