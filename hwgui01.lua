@@ -1,174 +1,124 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
 
+-- Main GUI
 local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-ScreenGui.ResetOnSpawn = false
+local frame = Instance.new("Frame", ScreenGui)
+frame.Position = UDim2.new(0, 100, 0, 100)
+frame.Size = UDim2.new(0, 400, 0, 370)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+frame.BorderSizePixel = 2
+frame.Active = true
+frame.Draggable = true
 
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 400, 0, 260)
-MainFrame.Position = UDim2.new(0, 10, 0, 400)
-MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
-MainFrame.Active = true
-MainFrame.Draggable = true
+-- Walk Speed
+local walkspeed = 16
+local walkspeedEnabled = true
 
-local Header = Instance.new("TextLabel", MainFrame)
-Header.Size = UDim2.new(1, 0, 0, 30)
-Header.Position = UDim2.new(0, 0, 0, 0)
-Header.Text = ""
-Header.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-Header.BorderSizePixel = 0
-
-local CollapseButton = Instance.new("TextButton", MainFrame)
-CollapseButton.Size = UDim2.new(0, 100, 0, 25)
-CollapseButton.Position = UDim2.new(1, -105, 0, 2)
-CollapseButton.Text = "thu ^"
-CollapseButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-CollapseButton.TextColor3 = Color3.new(1, 1, 1)
-
-local ContentFrame = Instance.new("Frame", MainFrame)
-ContentFrame.Size = UDim2.new(1, -10, 1, -40)
-ContentFrame.Position = UDim2.new(0, 5, 0, 35)
-ContentFrame.BackgroundTransparency = 1
-
-local SpeedToggle = Instance.new("TextButton", ContentFrame)
-SpeedToggle.Position = UDim2.new(0, 0, 0, 0)
-SpeedToggle.Size = UDim2.new(0, 130, 0, 30)
-SpeedToggle.Text = "walk speed 🟢"
-SpeedToggle.TextColor3 = Color3.new(1, 1, 1)
-SpeedToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-
-local Minus = Instance.new("TextButton", ContentFrame)
-Minus.Position = UDim2.new(0, 135, 0, 0)
-Minus.Size = UDim2.new(0, 30, 0, 30)
-Minus.Text = "-"
-Minus.TextColor3 = Color3.new(1, 1, 1)
-Minus.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-
-local SpeedLabel = Instance.new("TextLabel", ContentFrame)
-SpeedLabel.Position = UDim2.new(0, 170, 0, 0)
-SpeedLabel.Size = UDim2.new(0, 40, 0, 30)
-SpeedLabel.Text = "25"
-SpeedLabel.TextColor3 = Color3.new(1, 1, 1)
-SpeedLabel.BackgroundTransparency = 1
-
-local Plus = Instance.new("TextButton", ContentFrame)
-Plus.Position = UDim2.new(0, 215, 0, 0)
-Plus.Size = UDim2.new(0, 30, 0, 30)
-Plus.Text = "+"
-Plus.TextColor3 = Color3.new(1, 1, 1)
-Plus.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-
-local FollowToggle = Instance.new("TextButton", ContentFrame)
-FollowToggle.Position = UDim2.new(0, 0, 0, 40)
-FollowToggle.Size = UDim2.new(0, 160, 0, 30)
-FollowToggle.Text = "bay theo player 🟢"
-FollowToggle.TextColor3 = Color3.new(1, 1, 1)
-FollowToggle.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-
-local PlayerDropdown = Instance.new("TextButton", ContentFrame)
-PlayerDropdown.Position = UDim2.new(0, 0, 0, 80)
-PlayerDropdown.Size = UDim2.new(0, 160, 0, 30)
-PlayerDropdown.Text = "chọn player ↓"
-PlayerDropdown.TextColor3 = Color3.new(1, 1, 1)
-PlayerDropdown.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-
-local PlayerBox = Instance.new("TextBox", ContentFrame)
-PlayerBox.Position = UDim2.new(0, 170, 0, 80)
-PlayerBox.Size = UDim2.new(0, 160, 0, 30)
-PlayerBox.PlaceholderText = "nhập tên"
-PlayerBox.TextColor3 = Color3.new(1, 1, 1)
-PlayerBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-
-local PlayerListFrame = Instance.new("Frame", ContentFrame)
-PlayerListFrame.Position = UDim2.new(0, 0, 0, 115)
-PlayerListFrame.Size = UDim2.new(0, 160, 0, 100)
-PlayerListFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-PlayerListFrame.Visible = false
-
-local UIListLayout = Instance.new("UIListLayout", PlayerListFrame)
-
-local selectedPlayer = nil
-local following = true
-local speed = 25
-local speedEnabled = true
-local collapsed = false
-
-SpeedToggle.MouseButton1Click:Connect(function()
-	speedEnabled = not speedEnabled
-	SpeedToggle.Text = "walk speed " .. (speedEnabled and "🟢" or "🔴")
+local speedLabel = Instance.new("TextButton", frame)
+speedLabel.Text = "Walk Speed 🟢"
+speedLabel.Size = UDim2.new(0, 380, 0, 30)
+speedLabel.Position = UDim2.new(0, 10, 0, 10)
+speedLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+speedLabel.TextColor3 = Color3.new(1, 1, 1)
+speedLabel.BorderSizePixel = 0
+speedLabel.MouseButton1Click:Connect(function()
+	walkspeedEnabled = not walkspeedEnabled
+	speedLabel.Text = "Walk Speed " .. (walkspeedEnabled and "🟢" or "🔴")
+	LocalPlayer.Character.Humanoid.WalkSpeed = walkspeedEnabled and walkspeed or 16
 end)
 
-Plus.MouseButton1Click:Connect(function()
-	speed += 25
-	SpeedLabel.Text = tostring(speed)
-end)
-
-Minus.MouseButton1Click:Connect(function()
-	speed = math.max(0, speed - 25)
-	SpeedLabel.Text = tostring(speed)
-end)
-
-FollowToggle.MouseButton1Click:Connect(function()
-	following = not following
-	FollowToggle.Text = "bay theo player " .. (following and "🟢" or "🔴")
-end)
-
-PlayerDropdown.MouseButton1Click:Connect(function()
-	PlayerListFrame.Visible = not PlayerListFrame.Visible
-end)
-
-for _, p in pairs(Players:GetPlayers()) do
-	if p ~= LocalPlayer then
-		local btn = Instance.new("TextButton", PlayerListFrame)
-		btn.Size = UDim2.new(1, 0, 0, 25)
-		btn.Text = "@" .. p.Name
-		btn.TextColor3 = Color3.new(1, 1, 1)
-		btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-
-		btn.MouseButton1Click:Connect(function()
-			selectedPlayer = p
-			PlayerBox.Text = p.Name
-			PlayerListFrame.Visible = false
-		end)
-	end
-end
-
-Players.PlayerAdded:Connect(function(p)
-	local btn = Instance.new("TextButton", PlayerListFrame)
-	btn.Size = UDim2.new(1, 0, 0, 25)
-	btn.Text = "@" .. p.Name
-	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-
-	btn.MouseButton1Click:Connect(function()
-		selectedPlayer = p
-		PlayerBox.Text = p.Name
-		PlayerListFrame.Visible = false
-	end)
-end)
-
-CollapseButton.MouseButton1Click:Connect(function()
-	collapsed = not collapsed
-	if collapsed then
-		ContentFrame.Visible = false
-		MainFrame.Size = UDim2.new(0, 400, 0, 30)
-		CollapseButton.Text = "mở ⌄"
-	else
-		MainFrame.Size = UDim2.new(0, 400, 0, 260)
-		ContentFrame.Visible = true
-		CollapseButton.Text = "thu ^"
+local minus = Instance.new("TextButton", frame)
+minus.Text = "-"
+minus.Size = UDim2.new(0, 30, 0, 30)
+minus.Position = UDim2.new(0, 10, 0, 50)
+minus.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+minus.TextColor3 = Color3.new(1, 1, 1)
+minus.MouseButton1Click:Connect(function()
+	walkspeed = math.max(0, walkspeed - 25)
+	if walkspeedEnabled then
+		LocalPlayer.Character.Humanoid.WalkSpeed = walkspeed
 	end
 end)
 
+local value = Instance.new("TextLabel", frame)
+value.Text = tostring(walkspeed)
+value.Size = UDim2.new(0, 50, 0, 30)
+value.Position = UDim2.new(0, 45, 0, 50)
+value.BackgroundTransparency = 1
+value.TextColor3 = Color3.new(1, 1, 1)
+
+local plus = Instance.new("TextButton", frame)
+plus.Text = "+"
+plus.Size = UDim2.new(0, 30, 0, 30)
+plus.Position = UDim2.new(0, 100, 0, 50)
+plus.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+plus.TextColor3 = Color3.new(1, 1, 1)
+plus.MouseButton1Click:Connect(function()
+	walkspeed = walkspeed + 25
+	if walkspeedEnabled then
+		LocalPlayer.Character.Humanoid.WalkSpeed = walkspeed
+	end
+end)
+
+-- Update speed value
 game:GetService("RunService").RenderStepped:Connect(function()
-	if speedEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-		LocalPlayer.Character.Humanoid.WalkSpeed = speed
-	end
+	value.Text = tostring(walkspeed)
+end)
 
-	if following and selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
-		if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-			LocalPlayer.Character.HumanoidRootPart.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
+-- Teleport player
+local tpEnabled = true
+
+local tpLabel = Instance.new("TextButton", frame)
+tpLabel.Text = "Teleport Player 🟢"
+tpLabel.Size = UDim2.new(0, 380, 0, 30)
+tpLabel.Position = UDim2.new(0, 10, 0, 100)
+tpLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+tpLabel.TextColor3 = Color3.new(1, 1, 1)
+tpLabel.BorderSizePixel = 0
+tpLabel.MouseButton1Click:Connect(function()
+	tpEnabled = not tpEnabled
+	tpLabel.Text = "Teleport Player " .. (tpEnabled and "🟢" or "🔴")
+end)
+
+local textbox = Instance.new("TextBox", frame)
+textbox.PlaceholderText = "@username"
+textbox.Size = UDim2.new(0, 200, 0, 30)
+textbox.Position = UDim2.new(0, 10, 0, 140)
+textbox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+textbox.TextColor3 = Color3.new(1, 1, 1)
+
+local selector = Instance.new("TextButton", frame)
+selector.Text = "Select Player"
+selector.Size = UDim2.new(0, 160, 0, 30)
+selector.Position = UDim2.new(0, 220, 0, 140)
+selector.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+selector.TextColor3 = Color3.new(1, 1, 1)
+selector.MouseButton1Click:Connect(function()
+	local list = {}
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer then
+			table.insert(list, p.Name)
 		end
+	end
+	if #list > 0 then
+		textbox.Text = "@" .. list[math.random(1, #list)]
+	end
+end)
+
+local tpButton = Instance.new("TextButton", frame)
+tpButton.Text = "Teleport"
+tpButton.Size = UDim2.new(0, 380, 0, 30)
+tpButton.Position = UDim2.new(0, 10, 0, 180)
+tpButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+tpButton.TextColor3 = Color3.new(1, 1, 1)
+tpButton.MouseButton1Click:Connect(function()
+	if not tpEnabled then return end
+	local name = textbox.Text:gsub("@", "")
+	local target = Players:FindFirstChild(name)
+	if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+		LocalPlayer.Character:MoveTo(target.Character.HumanoidRootPart.Position + Vector3.new(0, 3, 0))
 	end
 end)
