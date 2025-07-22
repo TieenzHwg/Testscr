@@ -1,49 +1,110 @@
--- Full GUI + Fly + Speed Script (Không comment)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
 
-local Players = game:GetService("Players") local UserInputService = game:GetService("UserInputService") local RunService = game:GetService("RunService") local LocalPlayer = Players.LocalPlayer
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui")) ScreenGui.Name = "Y44I_GUI" ScreenGui.ResetOnSpawn = false
+local ScreenGui = Instance.new("ScreenGui", PlayerGui)
+ScreenGui.ResetOnSpawn = false
 
-local Frame = Instance.new("Frame", ScreenGui) Frame.Size = UDim2.new(0, 400, 0, 180) Frame.Position = UDim2.new(0, 100, 0, 100) Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30) Frame.BorderColor3 = Color3.fromRGB(255, 255, 255) Frame.Draggable = true Frame.Active = true Frame.Name = "MainFrame"
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 400, 0, 370)
+MainFrame.Position = UDim2.new(0, 100, 0, 100)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.Active = true
+MainFrame.Draggable = true
 
-local Title = Instance.new("TextButton", Frame) Title.Size = UDim2.new(1, 0, 0, 30) Title.Position = UDim2.new(0, 0, 0, 0) Title.Text = "Y44I GU1 ☻" Title.TextColor3 = Color3.new(1, 1, 1) Title.BackgroundColor3 = Color3.fromRGB(50, 50, 50) Title.BorderSizePixel = 0
+local ToggleButton = Instance.new("TextButton", MainFrame)
+ToggleButton.Size = UDim2.new(1, 0, 0, 30)
+ToggleButton.Position = UDim2.new(0, 0, 0, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ToggleButton.Text = "Y44I GUI☻"
+ToggleButton.TextColor3 = Color3.new(1, 1, 1)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.TextSize = 18
 
-local Collapsed = false Title.MouseButton1Click:Connect(function() Collapsed = not Collapsed Frame.Size = Collapsed and UDim2.new(0, 400, 0, 30) or UDim2.new(0, 400, 0, 180) end)
+local ContentFrame = Instance.new("Frame", MainFrame)
+ContentFrame.Size = UDim2.new(1, 0, 1, -30)
+ContentFrame.Position = UDim2.new(0, 0, 0, 30)
+ContentFrame.BackgroundTransparency = 1
 
-local function createButton(text, pos, size, parent) local b = Instance.new("TextButton", parent) b.Size = size b.Position = pos b.Text = text b.BackgroundColor3 = Color3.fromRGB(60, 60, 60) b.BorderColor3 = Color3.fromRGB(255, 255, 255) b.TextColor3 = Color3.new(1, 1, 1) b.TextScaled = true return b end
+local function createButton(text, pos, size, parent)
+	local b = Instance.new("TextButton")
+	b.Size = size
+	b.Position = pos
+	b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	b.TextColor3 = Color3.new(1, 1, 1)
+	b.Font = Enum.Font.SourceSansBold
+	b.TextSize = 18
+	b.Text = text
+	b.Parent = parent
+	return b
+end
 
-local function createLabel(text, pos, size, parent) local l = Instance.new("TextLabel", parent) l.Size = size l.Position = pos l.Text = text l.BackgroundColor3 = Color3.fromRGB(60, 60, 60) l.BorderColor3 = Color3.fromRGB(255, 255, 255) l.TextColor3 = Color3.new(1, 1, 1) l.TextScaled = true return l end
+local function createBox(pos, size, parent)
+	local tb = Instance.new("TextBox")
+	tb.Size = size
+	tb.Position = pos
+	tb.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	tb.TextColor3 = Color3.new(1, 1, 1)
+	tb.Font = Enum.Font.SourceSansBold
+	tb.TextSize = 18
+	tb.PlaceholderText = "nhập @username"
+	tb.Parent = parent
+	return tb
+end
 
-local Speed = 25 local SpeedEnabled = true local FlySpeed = 25 local FlyEnabled = false
+-- WALK SPEED
+local SpeedEnabled = true
+local WalkSpeed = 25
+local SpeedLabel = createButton("walk speed 🟢", UDim2.new(0,10,0,10), UDim2.new(0,150,0,30), ContentFrame)
+local SpeedMinus = createButton("-", UDim2.new(0,170,0,10), UDim2.new(0,30,0,30), ContentFrame)
+local SpeedNum = Instance.new("TextLabel", ContentFrame)
+SpeedNum.Size = UDim2.new(0,60,0,30)
+SpeedNum.Position = UDim2.new(0,205,0,10)
+SpeedNum.BackgroundTransparency = 1
+SpeedNum.TextColor3 = Color3.new(1,1,1)
+SpeedNum.Font = Enum.Font.SourceSansBold
+SpeedNum.TextSize = 18
+SpeedNum.Text = tostring(WalkSpeed)
+local SpeedPlus = createButton("+", UDim2.new(0,270,0,10), UDim2.new(0,30,0,30), ContentFrame)
 
-local SpeedLabel = createButton("speed 🟢", UDim2.new(0,10,0,35), UDim2.new(0,120,0,30), Frame) local SpeedMinus = createButton("-", UDim2.new(0,135,0,35), UDim2.new(0,30,0,30), Frame) local SpeedNum = createLabel(tostring(Speed), UDim2.new(0,170,0,35), UDim2.new(0,50,0,30), Frame) local SpeedPlus = createButton("+", UDim2.new(0,225,0,35), UDim2.new(0,30,0,30), Frame)
+SpeedLabel.MouseButton1Click:Connect(function()
+	SpeedEnabled = not SpeedEnabled
+	SpeedLabel.Text = "walk speed " .. (SpeedEnabled and "🟢" or "🔴")
+end)
+SpeedMinus.MouseButton1Click:Connect(function()
+	WalkSpeed = math.max(0, WalkSpeed - 25)
+	SpeedNum.Text = tostring(WalkSpeed)
+end)
+SpeedPlus.MouseButton1Click:Connect(function()
+	WalkSpeed = WalkSpeed + 25
+	SpeedNum.Text = tostring(WalkSpeed)
+end)
 
-local FlyLabel = createButton("fly 🟢", UDim2.new(0,10,0,70), UDim2.new(0,120,0,30), Frame) local FlyMinus = createButton("-", UDim2.new(0,135,0,70), UDim2.new(0,30,0,30), Frame) local FlyNum = createLabel(tostring(FlySpeed), UDim2.new(0,170,0,70), UDim2.new(0,50,0,30), Frame) local FlyPlus = createButton("+", UDim2.new(0,225,0,70), UDim2.new(0,30,0,30), Frame)
+RunService.RenderStepped:Connect(function()
+	pcall(function()
+		LocalPlayer.Character.Humanoid.WalkSpeed = SpeedEnabled and WalkSpeed or 16
+	end)
+end)
 
--- ADDITIONAL CONTROLS (chọn player & fly theo) local FollowToggle = createButton("bay theo player 🟢", UDim2.new(0,10,0,105), UDim2.new(0,150,0,30), Frame) local Dropdown = createLabel("chọn↓", UDim2.new(0,165,0,105), UDim2.new(0,100,0,30), Frame) local NameBox = Instance.new("TextBox", Frame) NameBox.Size = UDim2.new(0,100,0,30) NameBox.Position = UDim2.new(0,270,0,105) NameBox.Text = "nhập tên" NameBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60) NameBox.BorderColor3 = Color3.fromRGB(255, 255, 255) NameBox.TextColor3 = Color3.new(1, 1, 1) NameBox.TextScaled = true
-
-SpeedLabel.MouseButton1Click:Connect(function() SpeedEnabled = not SpeedEnabled SpeedLabel.Text = "speed " .. (SpeedEnabled and "🟢" or "🔴") end) SpeedMinus.MouseButton1Click:Connect(function() Speed = math.max(0, Speed - 25) SpeedNum.Text = tostring(Speed) end) SpeedPlus.MouseButton1Click:Connect(function() Speed = Speed + 25 SpeedNum.Text = tostring(Speed) end)
-
-FlyLabel.MouseButton1Click:Connect(function() FlyEnabled = not FlyEnabled FlyLabel.Text = "fly " .. (FlyEnabled and "🟢" or "🔴") if not FlyEnabled then local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") if root and root:FindFirstChild("BodyVelocity") then root.BodyVelocity:Destroy() end end end) FlyMinus.MouseButton1Click:Connect(function() FlySpeed = math.max(0, FlySpeed - 25) FlyNum.Text = tostring(FlySpeed) end) FlyPlus.MouseButton1Click:Connect(function() FlySpeed = FlySpeed + 25 FlyNum.Text = tostring(FlySpeed) end)
-
-local Keys = { [Enum.KeyCode.W] = false, [Enum.KeyCode.A] = false, [Enum.KeyCode.S] = false, [Enum.KeyCode.D] = false, [Enum.KeyCode.Space] = false, [Enum.KeyCode.LeftShift] = false, } UserInputService.InputBegan:Connect(function(input, gpe) if Keys[input.KeyCode] ~= nil then Keys[input.KeyCode] = true end end) UserInputService.InputEnded:Connect(function(input, gpe) if Keys[input.KeyCode] ~= nil then Keys[input.KeyCode] = false end end)
-
-RunService.RenderStepped:Connect(function() if SpeedEnabled then local char = LocalPlayer.Character if char and char:FindFirstChild("Humanoid") then char.Humanoid.WalkSpeed = Speed end end if FlyEnabled then local char = LocalPlayer.Character if char and char:FindFirstChild("HumanoidRootPart") then local root = char.HumanoidRootPart local cam = workspace.CurrentCamera local dir = Vector3.zero if Keys[Enum.KeyCode.W] then dir += cam.CFrame.LookVector end if Keys[Enum.KeyCode.S] then dir -= cam.CFrame.LookVector end if Keys[Enum.KeyCode.A] then dir -= cam.CFrame.RightVector end if Keys[Enum.KeyCode.D] then dir += cam.CFrame.RightVector end if Keys[Enum.KeyCode.Space] then dir += cam.CFrame.UpVector end if Keys[Enum.KeyCode.LeftShift] then dir -= cam.CFrame.UpVector end if not root:FindFirstChild("BodyVelocity") then local bv = Instance.new("BodyVelocity") bv.MaxForce = Vector3.new(1e5, 1e5, 1e5) bv.Velocity = Vector3.zero bv.P = 1000 bv.Name = "BodyVelocity" bv.Parent = root end local bv = root:FindFirstChild("BodyVelocity") bv.Velocity = dir.Magnitude > 0 and dir.Unit * FlySpeed or Vector3.zero end end end)
-
--- Fly toggle and control
-local FlyEnabled = false
+-- FLY
+local FlyEnabled = true
 local FlySpeed = 25
-local FlyLabel = createButton("fly 🟢", UDim2.new(0,10,0,60), UDim2.new(0,150,0,30), ContentFrame)
-local FlyMinus = createButton("-", UDim2.new(0,170,0,60), UDim2.new(0,30,0,30), ContentFrame)
+local FlyLabel = createButton("fly 🟢", UDim2.new(0,10,0,50), UDim2.new(0,150,0,30), ContentFrame)
+local FlyMinus = createButton("-", UDim2.new(0,170,0,50), UDim2.new(0,30,0,30), ContentFrame)
 local FlyNum = Instance.new("TextLabel", ContentFrame)
 FlyNum.Size = UDim2.new(0,60,0,30)
-FlyNum.Position = UDim2.new(0,205,0,60)
+FlyNum.Position = UDim2.new(0,205,0,50)
 FlyNum.BackgroundTransparency = 1
 FlyNum.TextColor3 = Color3.new(1,1,1)
 FlyNum.Font = Enum.Font.SourceSansBold
 FlyNum.TextSize = 18
 FlyNum.Text = tostring(FlySpeed)
-local FlyPlus = createButton("+", UDim2.new(0,270,0,60), UDim2.new(0,30,0,30), ContentFrame)
+local FlyPlus = createButton("+", UDim2.new(0,270,0,50), UDim2.new(0,30,0,30), ContentFrame)
 
 FlyLabel.MouseButton1Click:Connect(function()
 	FlyEnabled = not FlyEnabled
@@ -58,39 +119,82 @@ FlyPlus.MouseButton1Click:Connect(function()
 	FlyNum.Text = tostring(FlySpeed)
 end)
 
--- Fly Movement
-local UIS = game:GetService("UserInputService")
+-- Fly movement setup
 local flying = false
-local direction = Vector3.new()
+local vel, bg = nil, nil
+local function startFly()
+	if flying then return end
+	flying = true
 
-UIS.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.Keyboard then
-		if input.KeyCode == Enum.KeyCode.W then direction = direction + Vector3.new(0, 0, -1) end
-		if input.KeyCode == Enum.KeyCode.S then direction = direction + Vector3.new(0, 0, 1) end
-		if input.KeyCode == Enum.KeyCode.A then direction = direction + Vector3.new(-1, 0, 0) end
-		if input.KeyCode == Enum.KeyCode.D then direction = direction + Vector3.new(1, 0, 0) end
-		if input.KeyCode == Enum.KeyCode.Space then direction = direction + Vector3.new(0, 1, 0) end
-		if input.KeyCode == Enum.KeyCode.LeftShift then direction = direction + Vector3.new(0, -1, 0) end
-	end
-end)
+	local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local root = character:WaitForChild("HumanoidRootPart")
 
-UIS.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.Keyboard then
-		if input.KeyCode == Enum.KeyCode.W then direction = direction - Vector3.new(0, 0, -1) end
-		if input.KeyCode == Enum.KeyCode.S then direction = direction - Vector3.new(0, 0, 1) end
-		if input.KeyCode == Enum.KeyCode.A then direction = direction - Vector3.new(-1, 0, 0) end
-		if input.KeyCode == Enum.KeyCode.D then direction = direction - Vector3.new(1, 0, 0) end
-		if input.KeyCode == Enum.KeyCode.Space then direction = direction - Vector3.new(0, 1, 0) end
-		if input.KeyCode == Enum.KeyCode.LeftShift then direction = direction - Vector3.new(0, -1, 0) end
-	end
-end)
+	vel = Instance.new("BodyVelocity", root)
+	vel.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+	vel.Velocity = Vector3.zero
 
-RunService.RenderStepped:Connect(function()
-	pcall(function()
-		if FlyEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+	bg = Instance.new("BodyGyro", root)
+	bg.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+	bg.CFrame = root.CFrame
+
+	RunService.RenderStepped:Connect(function()
+		if flying and FlyEnabled then
 			local cam = workspace.CurrentCamera
-			local moveDir = cam.CFrame:VectorToWorldSpace(direction)
-			LocalPlayer.Character:FindFirstChild("HumanoidRootPart").Velocity = moveDir * FlySpeed
+			local moveVec = Vector3.new()
+			if UIS:IsKeyDown(Enum.KeyCode.W) then moveVec += cam.CFrame.LookVector end
+			if UIS:IsKeyDown(Enum.KeyCode.S) then moveVec -= cam.CFrame.LookVector end
+			if UIS:IsKeyDown(Enum.KeyCode.A) then moveVec -= cam.CFrame.RightVector end
+			if UIS:IsKeyDown(Enum.KeyCode.D) then moveVec += cam.CFrame.RightVector end
+			if UIS:IsKeyDown(Enum.KeyCode.Space) then moveVec += cam.CFrame.UpVector end
+			if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then moveVec -= cam.CFrame.UpVector end
+			vel.Velocity = moveVec.Unit * FlySpeed
+			bg.CFrame = cam.CFrame
+		elseif vel then
+			vel.Velocity = Vector3.zero
 		end
 	end)
+end
+
+local function stopFly()
+	flying = false
+	if vel then vel:Destroy() vel = nil end
+	if bg then bg:Destroy() bg = nil end
+end
+
+FlyLabel.MouseButton2Click:Connect(function()
+	if flying then stopFly() else startFly() end
+end)
+
+-- Follow Player Label
+local FollowLabel = createButton("bay theo player 🔴", UDim2.new(0,10,0,90), UDim2.new(0,170,0,30), ContentFrame)
+local Following = false
+FollowLabel.MouseButton1Click:Connect(function()
+	Following = not Following
+	FollowLabel.Text = "bay theo player " .. (Following and "🟢" or "🔴")
+end)
+
+-- Dropdown + Textbox
+local PlayerBox = createBox(UDim2.new(0,190,0,90), UDim2.new(0,170,0,30), ContentFrame)
+
+RunService.RenderStepped:Connect(function()
+	if Following and PlayerBox.Text ~= "" then
+		local target = Players:FindFirstChild(PlayerBox.Text)
+		if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+			local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+			if myRoot then
+				myRoot.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0,5,0)
+			end
+		end
+	end
+end)
+
+-- Toggle GUI collapse
+local collapsed = false
+ToggleButton.MouseButton1Click:Connect(function()
+	collapsed = not collapsed
+	if collapsed then
+		MainFrame.Size = UDim2.new(0, 400, 0, 30)
+	else
+		MainFrame.Size = UDim2.new(0, 400, 0, 370)
+	end
 end)
