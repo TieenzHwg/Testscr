@@ -172,3 +172,42 @@ end
 end
 end
 end)
+
+local UIS = game:GetService("UserInputService") local RS = game:GetService("RunService") local LP = game.Players.LocalPlayer
+
+local flying = false local flySpeed = 100 local flyVelocity local control = {F = false, B = false, L = false, R = false, U = false, D = false}
+
+local function startFly() local char = LP.Character or LP.CharacterAdded:Wait() local root = char:WaitForChild("HumanoidRootPart")
+
+flying = true
+
+flyVelocity = Instance.new("BodyVelocity")
+flyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+flyVelocity.Velocity = Vector3.zero
+flyVelocity.P = 1e4
+flyVelocity.Parent = root
+
+RS.RenderStepped:Connect(function()
+	if flying and LP.Character and root then
+		local camCF = workspace.CurrentCamera.CFrame
+		local move = Vector3.zero
+		if control.F then move = move + camCF.LookVector end
+		if control.B then move = move - camCF.LookVector end
+		if control.L then move = move - camCF.RightVector end
+		if control.R then move = move + camCF.RightVector end
+		if control.U then move = move + camCF.UpVector end
+		if control.D then move = move - camCF.UpVector end
+		
+		flyVelocity.Velocity = move.Unit * flySpeed
+	end
+end)
+
+end
+
+local function stopFly() flying = false if flyVelocity then flyVelocity:Destroy() end end
+
+UIS.InputBegan:Connect(function(i, g) if g then return end local k = i.KeyCode if k == Enum.KeyCode.W then control.F = true elseif k == Enum.KeyCode.S then control.B = true elseif k == Enum.KeyCode.A then control.L = true elseif k == Enum.KeyCode.D then control.R = true elseif k == Enum.KeyCode.Space then control.U = true elseif k == Enum.KeyCode.LeftControl then control.D = true elseif k == Enum.KeyCode.X then if not flying then startFly() else stopFly() end end end)
+
+UIS.InputEnded:Connect(function(i) local k = i.KeyCode if k == Enum.KeyCode.W then control.F = false elseif k == Enum.KeyCode.S then control.B = false elseif k == Enum.KeyCode.A then control.L = false elseif k == Enum.KeyCode.D then control.R = false elseif k == Enum.KeyCode.Space then control.U = false elseif k == Enum.KeyCode.LeftControl then control.D = false end end)
+
+
