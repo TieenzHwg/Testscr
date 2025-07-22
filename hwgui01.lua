@@ -1,101 +1,223 @@
-local Players = game:GetService("Players") local LocalPlayer = Players.LocalPlayer local Mouse = LocalPlayer:GetMouse() local UIS = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
-local ScreenGui = Instance.new("ScreenGui") ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") ScreenGui.Name = "Y44I_GUI"
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-local MainFrame = Instance.new("Frame") MainFrame.Size = UDim2.new(0, 400, 0, 370) MainFrame.Position = UDim2.new(0.5, -200, 0.5, -185) MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40) MainFrame.BorderColor3 = Color3.fromRGB(255, 255, 255) MainFrame.BorderSizePixel = 2 MainFrame.Active = true MainFrame.Draggable = true MainFrame.Parent = ScreenGui
+local ScreenGui = Instance.new("ScreenGui", PlayerGui)
+ScreenGui.ResetOnSpawn = false
 
-local ToggleButton = Instance.new("TextButton") ToggleButton.Size = UDim2.new(1, 0, 0, 30) ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30) ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255) ToggleButton.Text = "Y44I GU1 ☻" ToggleButton.Parent = MainFrame
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 400, 0, 370)
+MainFrame.Position = UDim2.new(0, 100, 0, 100)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.Active = true
+MainFrame.Draggable = true
 
-local ContentFrame = Instance.new("Frame") ContentFrame.Size = UDim2.new(1, 0, 1, -30) ContentFrame.Position = UDim2.new(0, 0, 0, 30) ContentFrame.BackgroundTransparency = 1 ContentFrame.Parent = MainFrame
+local ToggleButton = Instance.new("TextButton", MainFrame)
+ToggleButton.Size = UDim2.new(1, 0, 0, 30)
+ToggleButton.Position = UDim2.new(0, 0, 0, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ToggleButton.Text = "Y44I GUI☻"
+ToggleButton.TextColor3 = Color3.new(1, 1, 1)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.TextSize = 18
 
-local function createButton(text, pos) local btn = Instance.new("TextButton") btn.Size = UDim2.new(0, 120, 0, 30) btn.Position = pos btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60) btn.BorderColor3 = Color3.fromRGB(255, 255, 255) btn.TextColor3 = Color3.fromRGB(255, 255, 255) btn.Text = text btn.Parent = ContentFrame return btn end
+local ContentFrame = Instance.new("Frame", MainFrame)
+ContentFrame.Size = UDim2.new(1, 0, 1, -30)
+ContentFrame.Position = UDim2.new(0, 0, 0, 30)
+ContentFrame.BackgroundTransparency = 1
 
-local function createLabel(text, pos) local lbl = Instance.new("TextLabel") lbl.Size = UDim2.new(0, 120, 0, 30) lbl.Position = pos lbl.BackgroundTransparency = 1 lbl.TextColor3 = Color3.fromRGB(255, 255, 255) lbl.Text = text lbl.Parent = ContentFrame return lbl end
+local function createButton(text, pos, size, parent)
+    local b = Instance.new("TextButton")
+    b.Size = size
+    b.Position = pos
+    b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.Font = Enum.Font.SourceSansBold
+    b.TextSize = 18
+    b.Text = text
+    b.Parent = parent
+    return b
+end
 
-local Speed = 100 local SpeedEnabled = true local FlyEnabled = false local FlySpeed = 100 local FollowEnabled = false local SelectedPlayer = nil
+local function createBox(pos, size, parent)
+    local tb = Instance.new("TextBox")
+    tb.Size = size
+    tb.Position = pos
+    tb.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    tb.TextColor3 = Color3.new(1, 1, 1)
+    tb.Font = Enum.Font.SourceSansBold
+    tb.TextSize = 18
+    tb.PlaceholderText = "nhập @username"
+    tb.Parent = parent
+    return tb
+end
 
-local SpeedLabel = createLabel("speed: 🟢", UDim2.new(0, 10, 0, 0)) local SpeedMinus = createButton("-", UDim2.new(0, 140, 0, 0)) local SpeedValue = createLabel(tostring(Speed), UDim2.new(0, 190, 0, 0)) local SpeedPlus = createButton("+", UDim2.new(0, 240, 0, 0))
+-- WALK SPEED
+local SpeedEnabled = true
+local WalkSpeed = 25
+local SpeedLabel = createButton("walk speed 🟢", UDim2.new(0,10,0,10), UDim2.new(0,150,0,30), ContentFrame)
+local SpeedMinus = createButton("-", UDim2.new(0,170,0,10), UDim2.new(0,30,0,30), ContentFrame)
+local SpeedNum = Instance.new("TextLabel", ContentFrame)
+SpeedNum.Size = UDim2.new(0,60,0,30)
+SpeedNum.Position = UDim2.new(0,205,0,10)
+SpeedNum.BackgroundTransparency = 1
+SpeedNum.TextColor3 = Color3.new(1,1,1)
+SpeedNum.Font = Enum.Font.SourceSansBold
+SpeedNum.TextSize = 18
+SpeedNum.Text = tostring(WalkSpeed)
+local SpeedPlus = createButton("+", UDim2.new(0,270,0,10), UDim2.new(0,30,0,30), ContentFrame)
 
-local FlyLabel = createLabel("fly: 🔴", UDim2.new(0, 10, 0, 40)) local FlyMinus = createButton("-", UDim2.new(0, 140, 0, 40)) local FlyValue = createLabel(tostring(FlySpeed), UDim2.new(0, 190, 0, 40)) local FlyPlus = createButton("+", UDim2.new(0, 240, 0, 40))
+SpeedLabel.MouseButton1Click:Connect(function()
+    SpeedEnabled = not SpeedEnabled
+    SpeedLabel.Text = "walk speed " .. (SpeedEnabled and "🟢" or "🔴")
+end)
+SpeedMinus.MouseButton1Click:Connect(function()
+    WalkSpeed = math.max(0, WalkSpeed - 25)
+    SpeedNum.Text = tostring(WalkSpeed)
+end)
+SpeedPlus.MouseButton1Click:Connect(function()
+    WalkSpeed = WalkSpeed + 25
+    SpeedNum.Text = tostring(WalkSpeed)
+end)
 
-local FollowToggle = createButton("bay theo player: 🔴", UDim2.new(0, 10, 0, 80))
+RunService.RenderStepped:Connect(function()
+    pcall(function()
+        LocalPlayer.Character.Humanoid.WalkSpeed = SpeedEnabled and WalkSpeed or 16
+    end)
+end)
 
-local DropDown = Instance.new("TextButton") DropDown.Size = UDim2.new(0, 180, 0, 30) DropDown.Position = UDim2.new(0, 10, 0, 120) DropDown.Text = "chọn player ↓" DropDown.TextColor3 = Color3.fromRGB(255, 255, 255) DropDown.BackgroundColor3 = Color3.fromRGB(60, 60, 60) DropDown.BorderColor3 = Color3.fromRGB(255, 255, 255) DropDown.Parent = ContentFrame
-
-local DropFrame = Instance.new("Frame") DropFrame.Size = UDim2.new(0, 180, 0, 150) DropFrame.Position = UDim2.new(0, 10, 0, 150) DropFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60) DropFrame.BorderColor3 = Color3.fromRGB(255, 255, 255) DropFrame.Visible = false DropFrame.ClipsDescendants = true DropFrame.ZIndex = 2 DropFrame.Parent = ContentFrame
--- Fly Feature
-local FlyEnabled = true
+-- FLY (no clip style)
+local FlyEnabled = false
 local FlySpeed = 25
-
-local FlyLabel = createButton("fly 🟢", UDim2.new(0,10,0,100), UDim2.new(0,150,0,30), ContentFrame)
-local FlyMinus = createButton("-", UDim2.new(0,170,0,100), UDim2.new(0,30,0,30), ContentFrame)
+local FlyLabel = createButton("fly 🟢", UDim2.new(0,10,0,50), UDim2.new(0,150,0,30), ContentFrame)
+local FlyMinus = createButton("-", UDim2.new(0,170,0,50), UDim2.new(0,30,0,30), ContentFrame)
 local FlyNum = Instance.new("TextLabel", ContentFrame)
 FlyNum.Size = UDim2.new(0,60,0,30)
-FlyNum.Position = UDim2.new(0,205,0,100)
+FlyNum.Position = UDim2.new(0,205,0,50)
 FlyNum.BackgroundTransparency = 1
 FlyNum.TextColor3 = Color3.new(1,1,1)
 FlyNum.Font = Enum.Font.SourceSansBold
 FlyNum.TextSize = 18
 FlyNum.Text = tostring(FlySpeed)
-local FlyPlus = createButton("+", UDim2.new(0,270,0,100), UDim2.new(0,30,0,30), ContentFrame)
+local FlyPlus = createButton("+", UDim2.new(0,270,0,50), UDim2.new(0,30,0,30), ContentFrame)
 
 FlyLabel.MouseButton1Click:Connect(function()
     FlyEnabled = not FlyEnabled
     FlyLabel.Text = "fly " .. (FlyEnabled and "🟢" or "🔴")
 end)
-
 FlyMinus.MouseButton1Click:Connect(function()
-    FlySpeed = math.max(0, FlySpeed - 25)
+    FlySpeed = math.max(1, FlySpeed - 25)
     FlyNum.Text = tostring(FlySpeed)
 end)
-
 FlyPlus.MouseButton1Click:Connect(function()
     FlySpeed = FlySpeed + 25
     FlyNum.Text = tostring(FlySpeed)
 end)
 
--- Fly movement (noclip-style)
 local flying = false
-local function FlyLoop()
-    local cam = workspace.CurrentCamera
-    local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
+RunService.RenderStepped:Connect(function()
+    if FlyEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local HRP = LocalPlayer.Character.HumanoidRootPart
+        local camCF = workspace.CurrentCamera.CFrame
+        local direction = Vector3.zero
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction += camCF.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction -= camCF.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction -= camCF.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction += camCF.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then direction += camCF.UpVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then direction -= camCF.UpVector end
+        HRP.Velocity = direction.Unit * FlySpeed
+        flying = true
+    elseif flying and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.zero
+        flying = false
+    end
+end)
 
-    flying = true
-    while flying do
-        local moveDir = Vector3.zero
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            moveDir = moveDir + cam.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            moveDir = moveDir - cam.CFrame.LookVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            moveDir = moveDir - cam.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            moveDir = moveDir + cam.CFrame.RightVector
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            moveDir = moveDir + Vector3.new(0,1,0)
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-            moveDir = moveDir - Vector3.new(0,1,0)
-        end
-        root.Velocity = moveDir.Unit * FlySpeed
-        task.wait()
+-- FOLLOW PLAYER
+local FollowEnabled = true
+local FollowLabel = createButton("bay theo player 🟢", UDim2.new(0,10,0,90), UDim2.new(0,200,0,30), ContentFrame)
+FollowLabel.MouseButton1Click:Connect(function()
+    FollowEnabled = not FollowEnabled
+    FollowLabel.Text = "bay theo player " .. (FollowEnabled and "🟢" or "🔴")
+end)
+
+-- PLAYER SELECT
+local DropDown = createButton("chọn player ↓", UDim2.new(0,10,0,130), UDim2.new(0,200,0,30), ContentFrame)
+local TextBox = createBox(UDim2.new(0,220,0,130), UDim2.new(0,170,0,30), ContentFrame)
+
+local DropOpen = false
+local DropFrame = Instance.new("Frame", ContentFrame)
+DropFrame.Size = UDim2.new(0,200,0,150)
+DropFrame.Position = UDim2.new(0,10,0,170)
+DropFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+DropFrame.Visible = false
+local UIList = Instance.new("UIListLayout", DropFrame)
+
+DropDown.MouseButton1Click:Connect(function()
+    DropOpen = not DropOpen
+    DropFrame.Visible = DropOpen
+end)
+
+for _, plr in ipairs(Players:GetPlayers()) do
+    if plr ~= LocalPlayer then
+        local b = createButton("@"..plr.Name, UDim2.new(), UDim2.new(1,0,0,25), DropFrame)
+        b.MouseButton1Click:Connect(function()
+            TextBox.Text = "@" .. plr.Name
+            DropFrame.Visible = false
+            DropOpen = false
+        end)
     end
 end
 
+Players.PlayerAdded:Connect(function(plr)
+    local b = createButton("@"..plr.Name, UDim2.new(), UDim2.new(1,0,0,25), DropFrame)
+    b.MouseButton1Click:Connect(function()
+        TextBox.Text = "@" .. plr.Name
+        DropFrame.Visible = false
+        DropOpen = false
+    end)
+end)
+
 RunService.RenderStepped:Connect(function()
-    if FlyEnabled then
-        local char = LocalPlayer.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            if not flying then
-                FlyLoop()
+    if FollowEnabled and TextBox.Text ~= "" then
+        local target = Players:FindFirstChild(TextBox.Text:gsub("@",""))
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0,2,0)
+        end
+    end
+end)
+
+-- GUI TOGGLE
+ToggleButton.MouseButton1Click:Connect(function()
+    local visible = not ContentFrame.Visible
+    ContentFrame.Visible = visible
+    DropFrame.Visible = false
+    DropOpen = false
+    MainFrame.Size = visible and UDim2.new(0,400,0,370) or UDim2.new(0,400,0,30)
+end)
+
+-- ESP
+RunService.RenderStepped:Connect(function()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+            if not plr.Character.Head:FindFirstChild("ESP") then
+                local billboard = Instance.new("BillboardGui", plr.Character.Head)
+                billboard.Name = "ESP"
+                billboard.Size = UDim2.new(0, 100, 0, 20)
+                billboard.StudsOffset = Vector3.new(0, 2, 0)
+                billboard.AlwaysOnTop = true
+                local text = Instance.new("TextLabel", billboard)
+                text.Size = UDim2.new(1, 0, 1, 0)
+                text.Text = plr.Name
+                text.BackgroundTransparency = 1
+                text.TextColor3 = Color3.new(1,1,1)
+                text.TextSize = 6
             end
         end
-    else
-        flying = false
     end
 end)
