@@ -1,152 +1,175 @@
--- phần đầu giữ nguyên
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
-local Camera = workspace.CurrentCamera
 
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "Y44I_GUI"
-local Main = Instance.new("Frame", ScreenGui)
-Main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-Main.BorderColor3 = Color3.fromRGB(255, 0, 0)
-Main.BorderSizePixel = 2
-Main.Position = UDim2.new(0, 200, 0, 200)
-Main.Size = UDim2.new(0, 400, 0, 370)
-Main.Draggable = true
-Main.Active = true
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-local function createButton(text, pos, size)
-	local btn = Instance.new("TextButton", Main)
-	btn.Text = text
-	btn.Position = pos
-	btn.Size = size
-	btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-	btn.BorderColor3 = Color3.fromRGB(255, 0, 0)
-	btn.BorderSizePixel = 1
-	btn.TextColor3 = Color3.fromRGB(255, 0, 0)
-	btn.Font = Enum.Font.SourceSans
-	btn.TextScaled = true
-	return btn
+local ScreenGui = Instance.new("ScreenGui", PlayerGui)
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 400, 0, 370)
+MainFrame.Position = UDim2.new(0, 100, 0, 100)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local ToggleButton = Instance.new("TextButton", MainFrame)
+ToggleButton.Size = UDim2.new(1, 0, 0, 30)
+ToggleButton.Position = UDim2.new(0, 0, 0, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ToggleButton.Text = "Y44I GUI☻"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.TextSize = 18
+
+local ContentFrame = Instance.new("Frame", MainFrame)
+ContentFrame.Size = UDim2.new(1, 0, 1, -30)
+ContentFrame.Position = UDim2.new(0, 0, 0, 30)
+ContentFrame.BackgroundTransparency = 1
+
+local function createButton(text, pos, size, parent)
+    local b = Instance.new("TextButton")
+    b.Size = size
+    b.Position = pos
+    b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    b.TextColor3 = Color3.fromRGB(255, 0, 0)
+    b.Font = Enum.Font.SourceSansBold
+    b.TextSize = 18
+    b.Text = text
+    b.Parent = parent
+    return b
 end
 
-local function createLabel(text, pos, size)
-	local lbl = Instance.new("TextLabel", Main)
-	lbl.Text = text
-	lbl.Position = pos
-	lbl.Size = size
-	lbl.BackgroundTransparency = 1
-	lbl.TextColor3 = Color3.fromRGB(255, 0, 0)
-	lbl.Font = Enum.Font.SourceSans
-	lbl.TextScaled = true
-	return lbl
+local function createBox(pos, size, parent)
+    local tb = Instance.new("TextBox")
+    tb.Size = size
+    tb.Position = pos
+    tb.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    tb.TextColor3 = Color3.fromRGB(255, 0, 0)
+    tb.Font = Enum.Font.SourceSansBold
+    tb.TextSize = 18
+    tb.PlaceholderText = "nhập @username"
+    tb.Parent = parent
+    return tb
 end
 
-local walkSpeed = 16
-local flySpeed = 50
-local flyEnabled = false
-local followEnabled = false
-local espEnabled = true
+local SpeedEnabled = true
+local WalkSpeed = 25
+local SpeedLabel = createButton("walk speed 🟢", UDim2.new(0,10,0,10), UDim2.new(0,150,0,30), ContentFrame)
+local SpeedMinus = createButton("-", UDim2.new(0,170,0,10), UDim2.new(0,30,0,30), ContentFrame)
+local SpeedNum = Instance.new("TextLabel", ContentFrame)
+SpeedNum.Size = UDim2.new(0,60,0,30)
+SpeedNum.Position = UDim2.new(0,205,0,10)
+SpeedNum.BackgroundTransparency = 1
+SpeedNum.TextColor3 = Color3.fromRGB(255, 0, 0)
+SpeedNum.Font = Enum.Font.SourceSansBold
+SpeedNum.TextSize = 18
+SpeedNum.Text = tostring(WalkSpeed)
+local SpeedPlus = createButton("+", UDim2.new(0,270,0,10), UDim2.new(0,30,0,30), ContentFrame)
 
-local wsLabel = createLabel("speed 🟢", UDim2.new(0, 10, 0, 40), UDim2.new(0, 100, 0, 30))
-local wsMinus = createButton("-", UDim2.new(0, 120, 0, 40), UDim2.new(0, 30, 0, 30))
-local wsValue = createLabel("25", UDim2.new(0, 160, 0, 40), UDim2.new(0, 40, 0, 30))
-local wsPlus = createButton("+", UDim2.new(0, 210, 0, 40), UDim2.new(0, 30, 0, 30))
+SpeedLabel.MouseButton1Click:Connect(function()
+    SpeedEnabled = not SpeedEnabled
+    SpeedLabel.Text = "walk speed " .. (SpeedEnabled and "🟢" or "🔴")
+end)
+SpeedMinus.MouseButton1Click:Connect(function()
+    WalkSpeed = math.max(0, WalkSpeed - 25)
+    SpeedNum.Text = tostring(WalkSpeed)
+end)
+SpeedPlus.MouseButton1Click:Connect(function()
+    WalkSpeed = WalkSpeed + 25
+    SpeedNum.Text = tostring(WalkSpeed)
+end)
 
-local flyBtn = createButton("fly 🟢", UDim2.new(0, 10, 0, 80), UDim2.new(0, 100, 0, 30))
-
-local followLabel = createLabel("bay theo player 🟢", UDim2.new(0, 10, 0, 120), UDim2.new(0, 200, 0, 30))
-local nameBox = Instance.new("TextBox", Main)
-nameBox.Position = UDim2.new(0, 220, 0, 120)
-nameBox.Size = UDim2.new(0, 170, 0, 30)
-nameBox.PlaceholderText = "Nhập tên"
-nameBox.Text = ""
-nameBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-nameBox.TextColor3 = Color3.fromRGB(255, 0, 0)
-nameBox.BorderColor3 = Color3.fromRGB(255, 0, 0)
-nameBox.BorderSizePixel = 1
-nameBox.Font = Enum.Font.SourceSans
-nameBox.TextScaled = true
-
-local playerList = Instance.new("ScrollingFrame", Main)
-playerList.Position = UDim2.new(0, 10, 0, 160)
-playerList.Size = UDim2.new(0, 380, 0, 180)
-playerList.CanvasSize = UDim2.new(0, 0, 0, 0)
-playerList.ScrollBarThickness = 4
-playerList.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-playerList.BorderColor3 = Color3.fromRGB(255, 0, 0)
-playerList.BorderSizePixel = 1
-
-local function updatePlayerList()
-	playerList:ClearAllChildren()
-	local y = 0
-	for _, p in pairs(Players:GetPlayers()) do
-		if p ~= LocalPlayer then
-			local lbl = Instance.new("TextLabel", playerList)
-			lbl.Text = "@" .. p.Name .. " ||"
-			lbl.Position = UDim2.new(0, 5, 0, y)
-			lbl.Size = UDim2.new(1, -10, 0, 20)
-			lbl.BackgroundTransparency = 1
-			lbl.TextColor3 = Color3.fromRGB(255, 0, 0)
-			lbl.Font = Enum.Font.SourceSans
-			lbl.TextScaled = true
-			lbl.TextXAlignment = Enum.TextXAlignment.Left
-			y = y + 22
-		end
-	end
-	playerList.CanvasSize = UDim2.new(0, 0, 0, y)
-end
-
-updatePlayerList()
-Players.PlayerAdded:Connect(updatePlayerList)
-Players.PlayerRemoving:Connect(updatePlayerList)
-
-local espFolder = Instance.new("Folder", game.CoreGui)
 RunService.RenderStepped:Connect(function()
-	if espEnabled then
-		espFolder:ClearAllChildren()
-		for _, p in pairs(Players:GetPlayers()) do
-			if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
-				local head = p.Character.Head
-				local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
-				if onScreen then
-					local esp = Instance.new("TextLabel", espFolder)
-					esp.Text = p.Name
-					esp.Position = UDim2.new(0, pos.X, 0, pos.Y)
-					esp.Size = UDim2.new(0, 100, 0, 20)
-					esp.TextColor3 = Color3.fromRGB(255, 0, 0)
-					esp.BackgroundTransparency = 1
-					esp.TextScaled = true
-					esp.Font = Enum.Font.SourceSans
-				end
-			end
-		end
-	else
-		espFolder:ClearAllChildren()
-	end
+    pcall(function()
+        LocalPlayer.Character.Humanoid.WalkSpeed = SpeedEnabled and WalkSpeed or 16
+    end)
 end)
 
-local collapseBtn = createButton("Y44I GU1 ☻", UDim2.new(0, 0, 0, 0), UDim2.new(0, 400, 0, 30))
-local collapsed = false
-collapseBtn.MouseButton1Click:Connect(function()
-	collapsed = not collapsed
-	for _, v in ipairs(Main:GetChildren()) do
-		if v ~= collapseBtn then v.Visible = not collapsed end
-	end
-	Main.Size = collapsed and UDim2.new(0, 400, 0, 30) or UDim2.new(0, 400, 0, 370)
+local FollowEnabled = true
+local FollowLabel = createButton("bay theo player 🟢", UDim2.new(0,10,0,60), UDim2.new(0,200,0,30), ContentFrame)
+
+FollowLabel.MouseButton1Click:Connect(function()
+    FollowEnabled = not FollowEnabled
+    FollowLabel.Text = "bay theo player " .. (FollowEnabled and "🟢" or "🔴")
 end)
 
-wsMinus.MouseButton1Click:Connect(function()
-	walkSpeed = math.max(0, walkSpeed - 25)
-	LocalPlayer.Character.Humanoid.WalkSpeed = walkSpeed
-	wsValue.Text = tostring(walkSpeed)
+local DropDown = createButton("chọn player ↓", UDim2.new(0,10,0,110), UDim2.new(0,200,0,30), ContentFrame)
+local TextBox = createBox(UDim2.new(0,220,0,110), UDim2.new(0,180,0,30), ContentFrame)
+
+local DropOpen = false
+local DropFrame = Instance.new("Frame", ContentFrame)
+DropFrame.Size = UDim2.new(0,200,0,150)
+DropFrame.Position = UDim2.new(0,10,0,150)
+DropFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+DropFrame.Visible = false
+local UIList = Instance.new("UIListLayout", DropFrame)
+
+DropDown.MouseButton1Click:Connect(function()
+    DropOpen = not DropOpen
+    DropFrame.Visible = DropOpen
 end)
 
-wsPlus.MouseButton1Click:Connect(function()
-	walkSpeed = walkSpeed + 25
-	LocalPlayer.Character.Humanoid.WalkSpeed = walkSpeed
-	wsValue.Text = tostring(walkSpeed)
+for i, plr in ipairs(Players:GetPlayers()) do
+    if plr ~= LocalPlayer then
+        local b = createButton("@"..plr.Name, UDim2.new(0, 0, 0, (i-1)*25), UDim2.new(1, 0, 0, 25), DropFrame)
+        b.MouseButton1Click:Connect(function()
+            TextBox.Text = "@" .. plr.Name
+            DropFrame.Visible = false
+            DropOpen = false
+        end)
+    end
+end
+
+Players.PlayerAdded:Connect(function(plr)
+    local b = createButton("@"..plr.Name, UDim2.new(0, 0, 0, (#DropFrame:GetChildren()-1)*25), UDim2.new(1, 0, 0, 25), DropFrame)
+    b.MouseButton1Click:Connect(function()
+        TextBox.Text = "@" .. plr.Name
+        DropFrame.Visible = false
+        DropOpen = false
+    end)
 end)
 
-flyBtn.MouseButton1Click:Connect(function()
-	loadstring("\108\111\97\100\115\116\114\105\110\103\40\103\97\109\101\58\72\116\116\112\71\101\116\40\40\39\104\116\116\112\115\58\47\47\103\105\115\116\46\103\105\116\104\117\98\117\115\101\114\99\111\110\116\101\110\116\46\99\111\109\47\109\101\111\122\111\110\101\89\84\47\98\102\48\51\55\100\102\102\57\102\48\97\55\48\48\49\55\51\48\52\100\100\100\54\55\102\100\99\100\51\55\48\47\114\97\119\47\101\49\52\101\55\52\102\52\50\53\98\48\54\48\100\102\53\50\51\51\52\51\99\102\51\48\98\55\56\55\48\55\52\101\98\51\99\53\100\50\47\97\114\99\101\117\115\37\50\53\50\48\120\37\50\53\50\48\102\108\121\37\50\53\50\48\50\37\50\53\50\48\111\98\102\108\117\99\97\116\111\114\39\41\44\116\114\117\101\41\41\40\41\10\10")()
+RunService.RenderStepped:Connect(function()
+    if FollowEnabled and TextBox.Text ~= "" then
+        local target = Players:FindFirstChild(TextBox.Text:gsub("@",""))
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0,2,0)
+        end
+    end
+end)
+
+ToggleButton.MouseButton1Click:Connect(function()
+    if ContentFrame.Visible then
+        ContentFrame.Visible = false
+        DropFrame.Visible = false
+        DropOpen = false
+        MainFrame.Size = UDim2.new(0,400,0,30)
+    else
+        ContentFrame.Visible = true
+        MainFrame.Size = UDim2.new(0,400,0,370)
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+            if not plr.Character.Head:FindFirstChild("ESP") then
+                local billboard = Instance.new("BillboardGui", plr.Character.Head)
+                billboard.Name = "ESP"
+                billboard.Size = UDim2.new(0, 100, 0, 20)
+                billboard.StudsOffset = Vector3.new(0, 2, 0)
+                billboard.AlwaysOnTop = true
+                local text = Instance.new("TextLabel", billboard)
+                text.Size = UDim2.new(1, 0, 1, 0)
+                text.Text = plr.Name
+                text.BackgroundTransparency = 1
+                text.TextColor3 = Color3.fromRGB(255, 0, 0)
+                text.TextSize = 6
+            end
+        end
+    end
 end)
