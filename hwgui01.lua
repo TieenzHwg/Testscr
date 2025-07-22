@@ -20,7 +20,7 @@ local ToggleButton = Instance.new("TextButton", MainFrame)
 ToggleButton.Size = UDim2.new(1, 0, 0, 30)
 ToggleButton.Position = UDim2.new(0, 0, 0, 0)
 ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ToggleButton.Text = "HWG TIEENZ GUI•"
+ToggleButton.Text = "Y44I GUI☻"
 ToggleButton.TextColor3 = Color3.new(1, 1, 1)
 ToggleButton.Font = Enum.Font.SourceSansBold
 ToggleButton.TextSize = 18
@@ -172,59 +172,74 @@ end
 end
 end
 end)
+function createButton(text, pos, size, parent)
+	local b = Instance.new("TextButton")
+	b.Size = size
+	b.Position = pos
+	b.Text = text
+	b.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	b.BorderColor3 = Color3.fromRGB(255,255,255)
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.SourceSansBold
+	b.TextSize = 18
+	b.Parent = parent
+	return b
+end
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
 local FlyEnabled = false
 local FlySpeed = 25
 
-local FlyLabel = createButton("fly 🟢", UDim2.new(0,10,0,210), UDim2.new(0,150,0,30), ContentFrame)
-local FlyMinus = createButton("-", UDim2.new(0,170,0,210), UDim2.new(0,30,0,30), ContentFrame)
+local FlyLabel = createButton("fly 🟢", UDim2.new(0,10,0,120), UDim2.new(0,150,0,30), ContentFrame)
+local FlyMinus = createButton("-", UDim2.new(0,170,0,120), UDim2.new(0,30,0,30), ContentFrame)
 local FlyNum = Instance.new("TextLabel", ContentFrame)
 FlyNum.Size = UDim2.new(0,60,0,30)
-FlyNum.Position = UDim2.new(0,205,0,210)
+FlyNum.Position = UDim2.new(0,205,0,120)
 FlyNum.BackgroundTransparency = 1
 FlyNum.TextColor3 = Color3.new(1,1,1)
 FlyNum.Font = Enum.Font.SourceSansBold
 FlyNum.TextSize = 18
 FlyNum.Text = tostring(FlySpeed)
-local FlyPlus = createButton("+", UDim2.new(0,270,0,210), UDim2.new(0,30,0,30), ContentFrame)
+local FlyPlus = createButton("+", UDim2.new(0,270,0,120), UDim2.new(0,30,0,30), ContentFrame)
 
 FlyLabel.MouseButton1Click:Connect(function()
-    FlyEnabled = not FlyEnabled
-    FlyLabel.Text = "fly " .. (FlyEnabled and "🟢" or "🔴")
-    if not FlyEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.Humanoid.PlatformStand = false
-    end
+	FlyEnabled = not FlyEnabled
+	FlyLabel.Text = "fly " .. (FlyEnabled and "🟢" or "🔴")
+	if not FlyEnabled then
+		local char = game.Players.LocalPlayer.Character
+		if char and char:FindFirstChild("Humanoid") then
+			char.Humanoid.PlatformStand = false
+			char.HumanoidRootPart.Velocity = Vector3.zero
+		end
+	end
 end)
 
 FlyMinus.MouseButton1Click:Connect(function()
-    FlySpeed = math.max(0, FlySpeed - 25)
-    FlyNum.Text = tostring(FlySpeed)
+	FlySpeed = math.max(0, FlySpeed - 25)
+	FlyNum.Text = tostring(FlySpeed)
 end)
 
 FlyPlus.MouseButton1Click:Connect(function()
-    FlySpeed = FlySpeed + 25
-    FlyNum.Text = tostring(FlySpeed)
+	FlySpeed = FlySpeed + 25
+	FlyNum.Text = tostring(FlySpeed)
 end)
 
-local UIS = game:GetService("UserInputService")
-local flying = false
-local direction = Vector3.new()
-
-RunService.RenderStepped:Connect(function()
-    if FlyEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        LocalPlayer.Character.Humanoid.PlatformStand = true
-        local cam = workspace.CurrentCamera
-        local moveVec = Vector3.new()
-        if UIS:IsKeyDown(Enum.KeyCode.W) then moveVec = moveVec + cam.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.S) then moveVec = moveVec - cam.CFrame.LookVector end
-        if UIS:IsKeyDown(Enum.KeyCode.A) then moveVec = moveVec - cam.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.D) then moveVec = moveVec + cam.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.Space) then moveVec = moveVec + cam.CFrame.UpVector end
-        if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then moveVec = moveVec - cam.CFrame.UpVector end
-        if moveVec.Magnitude > 0 then
-            hrp.Velocity = moveVec.Unit * FlySpeed
-        else
-            hrp.Velocity = Vector3.new()
-        end
-    end
+RS.RenderStepped:Connect(function()
+	if FlyEnabled then
+		local plr = game.Players.LocalPlayer
+		local char = plr.Character
+		if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") then
+			local hrp = char.HumanoidRootPart
+			local cam = workspace.CurrentCamera
+			char.Humanoid.PlatformStand = true
+			local move = Vector3.zero
+			if UIS:IsKeyDown(Enum.KeyCode.W) then move += cam.CFrame.LookVector end
+			if UIS:IsKeyDown(Enum.KeyCode.S) then move -= cam.CFrame.LookVector end
+			if UIS:IsKeyDown(Enum.KeyCode.A) then move -= cam.CFrame.RightVector end
+			if UIS:IsKeyDown(Enum.KeyCode.D) then move += cam.CFrame.RightVector end
+			if UIS:IsKeyDown(Enum.KeyCode.Space) then move += cam.CFrame.UpVector end
+			if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then move -= cam.CFrame.UpVector end
+			hrp.Velocity = move.Magnitude > 0 and move.Unit * FlySpeed or Vector3.zero
+		end
+	end
 end)
