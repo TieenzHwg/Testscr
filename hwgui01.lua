@@ -150,4 +150,3 @@ Players.PlayerAdded:Connect(function(p)
         input.Text = "@"..p.Name
     end)
 end)
-
