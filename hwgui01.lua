@@ -1,9 +1,8 @@
 -- Gui ESP + Aura + Toggle/Drag
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local mouse = player:GetMouse()
+local UIS = game:GetService("UserInputService")
 
--- Tạo ScreenGui
 local screenGui = Instance.new("ScreenGui", game.CoreGui)
 
 -- Khung chính
@@ -49,16 +48,14 @@ local espEnabled = false
 local auraEnabled = false
 local minimized = false
 
--- Hàm ESP
+-- ESP toggle
 local function toggleESP()
     espEnabled = not espEnabled
     espBtn.Text = "[ESP: " .. (espEnabled and "ON" or "OFF") .. "]"
-
     for _,plr in pairs(Players:GetPlayers()) do
-        if plr ~= player then
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("Head") then
             if espEnabled then
-                if not plr.Character then continue end
-                if plr.Character:FindFirstChild("Head") and not plr.Character.Head:FindFirstChild("NameTag") then
+                if not plr.Character.Head:FindFirstChild("NameTag") then
                     local billboard = Instance.new("BillboardGui", plr.Character.Head)
                     billboard.Name = "NameTag"
                     billboard.Size = UDim2.new(0,100,0,30)
@@ -70,21 +67,18 @@ local function toggleESP()
                     label.TextColor3 = Color3.fromRGB(255,255,255)
                 end
             else
-                if plr.Character and plr.Character:FindFirstChild("Head") then
-                    if plr.Character.Head:FindFirstChild("NameTag") then
-                        plr.Character.Head.NameTag:Destroy()
-                    end
+                if plr.Character.Head:FindFirstChild("NameTag") then
+                    plr.Character.Head.NameTag:Destroy()
                 end
             end
         end
     end
 end
 
--- Hàm Aura
+-- Aura toggle
 local function toggleAura()
     auraEnabled = not auraEnabled
     auraBtn.Text = "[AURA: " .. (auraEnabled and "ON" or "OFF") .. "]"
-
     for _,plr in pairs(Players:GetPlayers()) do
         if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
             if auraEnabled then
@@ -103,18 +97,38 @@ local function toggleAura()
     end
 end
 
--- Nút thu gọn/kéo
-local dragging, dragInput, dragStart, startPos
+-- Nút thu gọn + kéo
 dragBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
-    mainFrame.Size = minimized and UDim2.new(0,200,0,25) or UDim2.new(0,200,0,120)
+    if minimized then
+        espBtn.Visible = false
+        auraBtn.Visible = false
+        mainFrame.Size = UDim2.new(0,200,0,25)
+    else
+        espBtn.Visible = true
+        auraBtn.Visible = true
+        mainFrame.Size = UDim2.new(0,200,0,120)
+    end
 end)
+
+-- Kéo UI
+local dragging = false
+local dragInput, dragStart, startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    mainFrame.Position = UDim2.new(
+        startPos.X.Scale, startPos.X.Offset + delta.X,
+        startPos.Y.Scale, startPos.Y.Offset + delta.Y
+    )
+end
 
 dragBtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
         startPos = mainFrame.Position
+
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
@@ -129,13 +143,12 @@ dragBtn.InputChanged:Connect(function(input)
     end
 end)
 
-game:GetService("UserInputService").InputChanged:Connect(function(input)
+UIS.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        update(input)
     end
 end)
 
--- Kết nối nút
+-- Kết nối
 espBtn.MouseButton1Click:Connect(toggleESP)
 auraBtn.MouseButton1Click:Connect(toggleAura)
