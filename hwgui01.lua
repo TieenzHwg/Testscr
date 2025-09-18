@@ -1,12 +1,11 @@
--- ESP Toggle GUI (2 ô: Toggle + Drag)
+-- ESP Toggle GUI (2 ô riêng: Toggle + Drag)
 local ScreenGui = Instance.new("ScreenGui")
-local ToggleFrame = Instance.new("Frame")
 local DragFrame = Instance.new("Frame")
 local ToggleButton = Instance.new("TextButton")
 
 ScreenGui.Parent = game.CoreGui
 
--- Drag frame
+-- Drag frame (chỉ để kéo)
 DragFrame.Size = UDim2.new(0, 120, 0, 30)
 DragFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
 DragFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -14,19 +13,13 @@ DragFrame.Active = true
 DragFrame.Draggable = true
 DragFrame.Parent = ScreenGui
 
--- Toggle frame
-ToggleFrame.Size = UDim2.new(0, 120, 0, 50)
-ToggleFrame.Position = UDim2.new(0, 0, 1, 5)
-ToggleFrame.AnchorPoint = Vector2.new(0, 1)
-ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-ToggleFrame.Parent = DragFrame
-
--- Toggle button
-ToggleButton.Size = UDim2.new(1, 0, 1, 0)
+-- Toggle button (ô riêng)
+ToggleButton.Size = UDim2.new(0, 120, 0, 50)
+ToggleButton.Position = UDim2.new(0.3, 0, 0.3, 35) -- đặt dưới ô drag
 ToggleButton.Text = "ESP OFF"
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-ToggleButton.Parent = ToggleFrame
+ToggleButton.Parent = ScreenGui
 
 -- ESP logic
 local espEnabled = false
@@ -82,7 +75,7 @@ end)
 game.Players.PlayerAdded:Connect(function(player)
     if espEnabled then
         player.CharacterAdded:Connect(function()
-            wait(1)
+            task.wait(1)
             createESP(player)
         end)
     end
