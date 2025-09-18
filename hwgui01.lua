@@ -1,129 +1,141 @@
---// UI
-local ScreenGui = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local EspButton = Instance.new("TextButton")
-local AuraButton = Instance.new("TextButton")
-local DragButton = Instance.new("TextButton")
+-- Gui ESP + Aura + Toggle/Drag
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
 
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- Tạo ScreenGui
+local screenGui = Instance.new("ScreenGui", game.CoreGui)
 
-Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-Frame.BorderColor3 = Color3.fromRGB(255, 0, 0)
-Frame.Size = UDim2.new(0, 300, 0, 40)
-Frame.Position = UDim2.new(0.3, 0, 0.1, 0)
+-- Khung chính
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 200, 0, 120)
+mainFrame.Position = UDim2.new(0.4, 0, 0.3, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+mainFrame.BorderColor3 = Color3.fromRGB(255,0,0)
+mainFrame.Parent = screenGui
 
-EspButton.Parent = Frame
-EspButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-EspButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
-EspButton.Size = UDim2.new(0.33, 0, 1, 0)
-EspButton.Position = UDim2.new(0, 0, 0, 0)
-EspButton.Text = "[ESP: OFF]"
-EspButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- Nút kéo/thu gọn
+local dragBtn = Instance.new("TextButton")
+dragBtn.Size = UDim2.new(0, 200, 0, 25)
+dragBtn.Position = UDim2.new(0, 0, 0, 0)
+dragBtn.Text = "[•]"
+dragBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+dragBtn.BorderColor3 = Color3.fromRGB(255,0,0)
+dragBtn.TextColor3 = Color3.fromRGB(255,255,255)
+dragBtn.Parent = mainFrame
 
-AuraButton.Parent = Frame
-AuraButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-AuraButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
-AuraButton.Size = UDim2.new(0.33, 0, 1, 0)
-AuraButton.Position = UDim2.new(0.33, 0, 0, 0)
-AuraButton.Text = "[Aura: OFF]"
-AuraButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- Nút ESP
+local espBtn = Instance.new("TextButton")
+espBtn.Size = UDim2.new(0, 200, 0, 30)
+espBtn.Position = UDim2.new(0, 0, 0, 30)
+espBtn.Text = "[ESP: OFF]"
+espBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+espBtn.BorderColor3 = Color3.fromRGB(255,0,0)
+espBtn.TextColor3 = Color3.fromRGB(255,255,255)
+espBtn.Parent = mainFrame
 
-DragButton.Parent = Frame
-DragButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-DragButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
-DragButton.Size = UDim2.new(0.34, 0, 1, 0)
-DragButton.Position = UDim2.new(0.66, 0, 0, 0)
-DragButton.Text = "[•]"
-DragButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- Nút Aura
+local auraBtn = Instance.new("TextButton")
+auraBtn.Size = UDim2.new(0, 200, 0, 30)
+auraBtn.Position = UDim2.new(0, 0, 0, 65)
+auraBtn.Text = "[AURA: OFF]"
+auraBtn.BackgroundColor3 = Color3.fromRGB(0,0,0)
+auraBtn.BorderColor3 = Color3.fromRGB(255,0,0)
+auraBtn.TextColor3 = Color3.fromRGB(255,255,255)
+auraBtn.Parent = mainFrame
 
---// Drag
-local dragging, dragStart, startPos
-local function updateDrag(input)
-	local delta = input.Position - dragStart
-	Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
-DragButton.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = Frame.Position
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then dragging = false end
-		end)
-	end
-end)
-DragButton.InputChanged:Connect(function(input)
-	if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and dragging then
-		updateDrag(input)
-	end
-end)
+-- Biến trạng thái
+local espEnabled = false
+local auraEnabled = false
+local minimized = false
 
---// ESP + Aura
-local players = game:GetService("Players")
-local espEnabled, auraEnabled = false, false
+-- Hàm ESP
+local function toggleESP()
+    espEnabled = not espEnabled
+    espBtn.Text = "[ESP: " .. (espEnabled and "ON" or "OFF") .. "]"
 
-local function setESP(player, state)
-	if player == players.LocalPlayer then return end
-	local char = player.Character
-	if not char or not char:FindFirstChild("Head") then return end
-	if state then
-		if not char:FindFirstChild("ESP") then
-			local billboard = Instance.new("BillboardGui")
-			billboard.Name = "ESP"
-			billboard.Adornee = char.Head
-			billboard.Size = UDim2.new(0,100,0,50)
-			billboard.AlwaysOnTop = true
-			billboard.Parent = char
-
-			local label = Instance.new("TextLabel")
-			label.Size = UDim2.new(1,0,1,0)
-			label.BackgroundTransparency = 1
-			label.Text = player.Name
-			label.TextColor3 = Color3.fromRGB(255,255,255)
-			label.TextStrokeTransparency = 0.5
-			label.Parent = billboard
-		end
-	else
-		if char:FindFirstChild("ESP") then char.ESP:Destroy() end
-	end
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr ~= player then
+            if espEnabled then
+                if not plr.Character then continue end
+                if plr.Character:FindFirstChild("Head") and not plr.Character.Head:FindFirstChild("NameTag") then
+                    local billboard = Instance.new("BillboardGui", plr.Character.Head)
+                    billboard.Name = "NameTag"
+                    billboard.Size = UDim2.new(0,100,0,30)
+                    billboard.AlwaysOnTop = true
+                    local label = Instance.new("TextLabel", billboard)
+                    label.Size = UDim2.new(1,0,1,0)
+                    label.BackgroundTransparency = 1
+                    label.Text = plr.Name
+                    label.TextColor3 = Color3.fromRGB(255,255,255)
+                end
+            else
+                if plr.Character and plr.Character:FindFirstChild("Head") then
+                    if plr.Character.Head:FindFirstChild("NameTag") then
+                        plr.Character.Head.NameTag:Destroy()
+                    end
+                end
+            end
+        end
+    end
 end
 
-local function setAura(player, state)
-	if player == players.LocalPlayer then return end
-	local char = player.Character
-	if not char then return end
-	if state then
-		if not char:FindFirstChild("ESP_Highlight") then
-			local hl = Instance.new("Highlight")
-			hl.Name = "ESP_Highlight"
-			hl.Adornee = char
-			hl.FillColor = Color3.fromRGB(255, 255, 0)
-			hl.OutlineColor = Color3.fromRGB(255, 255, 0)
-			hl.Parent = char
-		end
-	else
-		if char:FindFirstChild("ESP_Highlight") then char.ESP_Highlight:Destroy() end
-	end
+-- Hàm Aura
+local function toggleAura()
+    auraEnabled = not auraEnabled
+    auraBtn.Text = "[AURA: " .. (auraEnabled and "ON" or "OFF") .. "]"
+
+    for _,plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            if auraEnabled then
+                if not plr.Character.HumanoidRootPart:FindFirstChild("Aura") then
+                    local aura = Instance.new("SelectionCircle", plr.Character.HumanoidRootPart)
+                    aura.Name = "Aura"
+                    aura.Color3 = Color3.fromRGB(255, 255, 0)
+                    aura.Adornee = plr.Character.HumanoidRootPart
+                end
+            else
+                if plr.Character.HumanoidRootPart:FindFirstChild("Aura") then
+                    plr.Character.HumanoidRootPart.Aura:Destroy()
+                end
+            end
+        end
+    end
 end
 
-EspButton.MouseButton1Click:Connect(function()
-	espEnabled = not espEnabled
-	EspButton.Text = espEnabled and "[ESP: ON]" or "[ESP: OFF]"
-	for _,p in pairs(players:GetPlayers()) do setESP(p, espEnabled) end
+-- Nút thu gọn/kéo
+local dragging, dragInput, dragStart, startPos
+dragBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    mainFrame.Size = minimized and UDim2.new(0,200,0,25) or UDim2.new(0,200,0,120)
 end)
 
-AuraButton.MouseButton1Click:Connect(function()
-	auraEnabled = not auraEnabled
-	AuraButton.Text = auraEnabled and "[Aura: ON]" or "[Aura: OFF]"
-	for _,p in pairs(players:GetPlayers()) do setAura(p, auraEnabled) end
+dragBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
 end)
 
-players.PlayerAdded:Connect(function(p)
-	p.CharacterAdded:Connect(function()
-		task.wait(1)
-		if espEnabled then setESP(p, true) end
-		if auraEnabled then setAura(p, true) end
-	end)
+dragBtn.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
 end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Kết nối nút
+espBtn.MouseButton1Click:Connect(toggleESP)
+auraBtn.MouseButton1Click:Connect(toggleAura)
