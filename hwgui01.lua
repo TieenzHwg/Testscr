@@ -1,86 +1,63 @@
--- ESP Toggle GUI (2 ô riêng: Toggle + Drag)
-local ScreenGui = Instance.new("ScreenGui")
-local DragFrame = Instance.new("Frame")
-local ToggleButton = Instance.new("TextButton")
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
 
-ScreenGui.Parent = game.CoreGui
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Size = UDim2.new(0, 200, 0, 50)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -25)
+MainFrame.BackgroundColor3 = Color3.new(0,0,0)
+MainFrame.BorderColor3 = Color3.new(1,0,0)
+MainFrame.BorderSizePixel = 3
 
--- Drag frame (chỉ để kéo)
-DragFrame.Size = UDim2.new(0, 120, 0, 30)
-DragFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
-DragFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-DragFrame.Active = true
-DragFrame.Draggable = true
-DragFrame.Parent = ScreenGui
+-- ESP toggle button
+local ESPButton = Instance.new("TextButton", MainFrame)
+ESPButton.Size = UDim2.new(0.7, 0, 1, 0)
+ESPButton.Position = UDim2.new(0,0,0,0)
+ESPButton.Text = "ESP [OFF]"
+ESPButton.Font = Enum.Font.Code
+ESPButton.TextSize = 18
+ESPButton.TextColor3 = Color3.new(1,1,1)
+ESPButton.BackgroundColor3 = Color3.new(0,0,0)
+ESPButton.BorderColor3 = Color3.new(1,0,0)
 
--- Toggle button (ô riêng)
-ToggleButton.Size = UDim2.new(0, 120, 0, 50)
-ToggleButton.Position = UDim2.new(0.3, 0, 0.3, 35) -- đặt dưới ô drag
-ToggleButton.Text = "ESP OFF"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
-ToggleButton.Parent = ScreenGui
-
--- ESP logic
 local espEnabled = false
-local espObjects = {}
-
-local function createESP(player)
-    if player.Character and player.Character:FindFirstChild("Head") then
-        local BillboardGui = Instance.new("BillboardGui")
-        BillboardGui.Name = "ESP"
-        BillboardGui.Adornee = player.Character.Head
-        BillboardGui.Size = UDim2.new(0, 100, 0, 20)
-        BillboardGui.AlwaysOnTop = true
-
-        local TextLabel = Instance.new("TextLabel")
-        TextLabel.Size = UDim2.new(1, 0, 1, 0)
-        TextLabel.BackgroundTransparency = 1
-        TextLabel.Text = player.Name
-        TextLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-        TextLabel.Parent = BillboardGui
-
-        BillboardGui.Parent = player.Character.Head
-        espObjects[player] = BillboardGui
-    end
-end
-
-local function removeESP(player)
-    if espObjects[player] then
-        espObjects[player]:Destroy()
-        espObjects[player] = nil
-    end
-end
-
-ToggleButton.MouseButton1Click:Connect(function()
+ESPButton.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
-    if espEnabled then
-        ToggleButton.Text = "ESP ON"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                createESP(player)
-            end
-        end
-    else
-        ToggleButton.Text = "ESP OFF"
-        ToggleButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-        for _, player in pairs(espObjects) do
-            player:Destroy()
-        end
-        espObjects = {}
+    ESPButton.Text = "ESP " .. (espEnabled and "[ON]" or "[OFF]")
+    print("ESP:", espEnabled)
+end)
+
+-- Dot drag handle
+local DragDot = Instance.new("TextButton", MainFrame)
+DragDot.Size = UDim2.new(0.3, 0, 1, 0)
+DragDot.Position = UDim2.new(0.7,0,0,0)
+DragDot.Text = "•"
+DragDot.Font = Enum.Font.Code
+DragDot.TextSize = 20
+DragDot.TextColor3 = Color3.new(1,0,0)
+DragDot.BackgroundColor3 = Color3.new(0,0,0)
+DragDot.BorderColor3 = Color3.new(1,0,0)
+
+-- Dragging
+local UserInputService = game:GetService("UserInputService")
+local dragging, dragStart, startPos
+
+DragDot.MouseButton1Down:Connect(function(input)
+    dragging = true
+    dragStart = input.Position
+    startPos = MainFrame.Position
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
     end
 end)
 
-game.Players.PlayerAdded:Connect(function(player)
-    if espEnabled then
-        player.CharacterAdded:Connect(function()
-            task.wait(1)
-            createESP(player)
-        end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
     end
-end)
-
-game.Players.PlayerRemoving:Connect(function(player)
-    removeESP(player)
 end)
