@@ -12,25 +12,53 @@ Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Frame.BorderColor3 = Color3.fromRGB(255, 0, 0)
 Frame.Size = UDim2.new(0, 200, 0, 50)
 Frame.Position = UDim2.new(0.4, 0, 0.1, 0)
-Frame.Active = true
-Frame.Draggable = true
 
 EspButton.Parent = Frame
 EspButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 EspButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
-EspButton.Size = UDim2.new(0.5, 0, 1, 0)
+EspButton.Size = UDim2.new(0.8, 0, 1, 0)
+EspButton.Position = UDim2.new(0, 0, 0, 0)
 EspButton.Text = "[ESP: OFF]"
 EspButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 DragButton.Parent = Frame
 DragButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 DragButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
-DragButton.Size = UDim2.new(0.5, 0, 1, 0)
-DragButton.Position = UDim2.new(0.5, 0, 0, 0)
+DragButton.Size = UDim2.new(0.2, 0, 1, 0)
+DragButton.Position = UDim2.new(0.8, 0, 0, 0)
 DragButton.Text = "[•]"
 DragButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 
---// ESP + Aura
+--// Drag function chỉ cho DragButton
+local dragging, dragStart, startPos
+
+local function updateDrag(input)
+	local delta = input.Position - dragStart
+	Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+DragButton.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = Frame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+DragButton.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		if dragging then
+			updateDrag(input)
+		end
+	end
+end)
+
+--// ESP logic như cũ
 local espEnabled = false
 local players = game:GetService("Players")
 
@@ -39,7 +67,6 @@ local function createESP(player)
 	local char = player.Character
 	if not char or not char:FindFirstChild("Head") then return end
 
-	-- Name ESP
 	if not char:FindFirstChild("ESP") then
 		local billboard = Instance.new("BillboardGui")
 		billboard.Name = "ESP"
@@ -57,7 +84,6 @@ local function createESP(player)
 		textLabel.TextStrokeTransparency = 0.5
 	end
 
-	-- Aura Highlight
 	if not char:FindFirstChild("ESP_Highlight") then
 		local hl = Instance.new("Highlight")
 		hl.Name = "ESP_Highlight"
