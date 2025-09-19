@@ -1,166 +1,132 @@
---// UI tạo ESP và Aura + nút kéo
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+--// UI
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local ESPButton = Instance.new("TextButton")
+local AuraButton = Instance.new("TextButton")
 
-local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 220, 0, 100)
-MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+ScreenGui.Parent = game.CoreGui
+
+-- MainFrame (cả cái này đều kéo đc)
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-MainFrame.BorderSizePixel = 3
 MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+MainFrame.Position = UDim2.new(0.3, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 200, 0, 85)
+MainFrame.Active = true
+MainFrame.Draggable = true -- chỗ nào cũng kéo được
 
--- nút kéo
-local DragButton = Instance.new("TextButton", MainFrame)
-DragButton.Size = UDim2.new(1, 0, 0, 20)
-DragButton.Position = UDim2.new(0, 0, 0, 0)
-DragButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-DragButton.Text = "[Kéo]"
-DragButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-
--- nút ESP
-local ESPButton = Instance.new("TextButton", MainFrame)
-ESPButton.Size = UDim2.new(0.5, -5, 0, 40)
-ESPButton.Position = UDim2.new(0, 5, 0, 30)
-ESPButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-ESPButton.Text = "[ESP]"
+-- ESP button
+ESPButton.Parent = MainFrame
+ESPButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ESPButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
+ESPButton.Size = UDim2.new(0.5, 0, 0.5, 0)
+ESPButton.Font = Enum.Font.SourceSans
+ESPButton.Text = "ESP OFF"
 ESPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPButton.TextSize = 18
 
--- nút Aura
-local AuraButton = Instance.new("TextButton", MainFrame)
-AuraButton.Size = UDim2.new(0.5, -5, 0, 40)
-AuraButton.Position = UDim2.new(0.5, 0, 0, 30)
-AuraButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-AuraButton.Text = "[Aura]"
+-- Aura button
+AuraButton.Parent = MainFrame
+AuraButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+AuraButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
+AuraButton.Position = UDim2.new(0.5, 0, 0, 0)
+AuraButton.Size = UDim2.new(0.5, 0, 0.5, 0)
+AuraButton.Font = Enum.Font.SourceSans
+AuraButton.Text = "AURA OFF"
 AuraButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AuraButton.TextSize = 18
 
--- code kéo
-local UIS = game:GetService("UserInputService")
-local dragging, dragStart, startPos
-
-local function update(input)
-    local delta = input.Position - dragStart
-    MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
-
-DragButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-DragButton.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        if dragging then
-            update(input)
-        end
-    end
-end)
-
--- ESP Code
+--// ESP
 local espEnabled = false
-local espObjects = {}
+function toggleESP()
+	espEnabled = not espEnabled
+	ESPButton.Text = espEnabled and "ESP ON" or "ESP OFF"
+	for _,plr in pairs(game.Players:GetPlayers()) do
+		if plr ~= game.Players.LocalPlayer then
+			if espEnabled and plr.Character and plr.Character:FindFirstChild("Head") then
+				if not plr.Character.Head:FindFirstChild("ESPTag") then
+					local Billboard = Instance.new("BillboardGui")
+					Billboard.Name = "ESPTag"
+					Billboard.Adornee = plr.Character.Head
+					Billboard.Size = UDim2.new(0,200,0,50)
+					Billboard.AlwaysOnTop = true
+					Billboard.Parent = plr.Character.Head
 
-local function createESP(plr)
-    if plr == LocalPlayer then return end
-    local Billboard = Instance.new("BillboardGui")
-    Billboard.Adornee = plr.Character:WaitForChild("Head")
-    Billboard.Size = UDim2.new(0,100,0,50)
-    Billboard.AlwaysOnTop = true
-    Billboard.Name = "ESP"
-
-    local TextLabel = Instance.new("TextLabel", Billboard)
-    TextLabel.Size = UDim2.new(1,0,1,0)
-    TextLabel.BackgroundTransparency = 1
-    TextLabel.Text = plr.Name
-    TextLabel.TextColor3 = Color3.fromRGB(0,255,0)
-    TextLabel.TextScaled = true
-
-    Billboard.Parent = plr.Character
-    espObjects[plr] = Billboard
+					local Text = Instance.new("TextLabel", Billboard)
+					Text.Size = UDim2.new(1,0,1,0)
+					Text.BackgroundTransparency = 1
+					Text.Text = plr.Name
+					Text.TextColor3 = Color3.fromRGB(255,255,255)
+					Text.TextStrokeTransparency = 0
+				end
+			else
+				if plr.Character and plr.Character:FindFirstChild("Head") then
+					local tag = plr.Character.Head:FindFirstChild("ESPTag")
+					if tag then tag:Destroy() end
+				end
+			end
+		end
+	end
 end
 
-local function removeESP(plr)
-    if espObjects[plr] then
-        espObjects[plr]:Destroy()
-        espObjects[plr] = nil
-    end
-end
+ESPButton.MouseButton1Click:Connect(toggleESP)
 
-ESPButton.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    if espEnabled then
-        ESPButton.Text = "[ESP ✅]"
-        for _,plr in pairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
-                createESP(plr)
-            end
-        end
-        Players.PlayerAdded:Connect(function(plr)
-            plr.CharacterAdded:Connect(function()
-                if espEnabled then
-                    createESP(plr)
-                end
-            end)
-        end)
-    else
-        ESPButton.Text = "[ESP ❌]"
-        for plr, gui in pairs(espObjects) do
-            gui:Destroy()
-        end
-        espObjects = {}
-    end
-end)
-
--- Aura Code
+--// Aura
 local auraEnabled = false
-local auraObjects = {}
-
-local function createAura(plr)
-    if plr == LocalPlayer then return end
-    local highlight = Instance.new("Highlight")
-    highlight.FillColor = Color3.fromRGB(255,255,0) -- vàng
-    highlight.OutlineColor = Color3.fromRGB(255,255,0)
-    highlight.Parent = plr.Character
-    auraObjects[plr] = highlight
+function toggleAura()
+	auraEnabled = not auraEnabled
+	AuraButton.Text = auraEnabled and "AURA ON" or "AURA OFF"
+	for _,plr in pairs(game.Players:GetPlayers()) do
+		if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			if auraEnabled then
+				if not plr.Character:FindFirstChild("AuraHighlight") then
+					local Highlight = Instance.new("Highlight")
+					Highlight.Name = "AuraHighlight"
+					Highlight.FillColor = Color3.fromRGB(255, 255, 0)
+					Highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+					Highlight.Parent = plr.Character
+				end
+			else
+				local h = plr.Character:FindFirstChild("AuraHighlight")
+				if h then h:Destroy() end
+			end
+		end
+	end
 end
 
-local function removeAura(plr)
-    if auraObjects[plr] then
-        auraObjects[plr]:Destroy()
-        auraObjects[plr] = nil
-    end
-end
+AuraButton.MouseButton1Click:Connect(toggleAura)
 
-AuraButton.MouseButton1Click:Connect(function()
-    auraEnabled = not auraEnabled
-    if auraEnabled then
-        AuraButton.Text = "[Aura ✅]"
-        for _,plr in pairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character then
-                createAura(plr)
-            end
-        end
-        Players.PlayerAdded:Connect(function(plr)
-            plr.CharacterAdded:Connect(function()
-                if auraEnabled then
-                    createAura(plr)
-                end
-            end)
-        end)
-    else
-        AuraButton.Text = "[Aura ❌]"
-        for plr, aura in pairs(auraObjects) do
-            aura:Destroy()
-        end
-        auraObjects = {}
-    end
+-- auto update
+game.Players.PlayerAdded:Connect(function(plr)
+	plr.CharacterAdded:Connect(function(char)
+		if espEnabled then
+			task.wait(1)
+			if char:FindFirstChild("Head") then
+				local Billboard = Instance.new("BillboardGui")
+				Billboard.Name = "ESPTag"
+				Billboard.Adornee = char.Head
+				Billboard.Size = UDim2.new(0,200,0,50)
+				Billboard.AlwaysOnTop = true
+				Billboard.Parent = char.Head
+
+				local Text = Instance.new("TextLabel", Billboard)
+				Text.Size = UDim2.new(1,0,1,0)
+				Text.BackgroundTransparency = 1
+				Text.Text = plr.Name
+				Text.TextColor3 = Color3.fromRGB(255,255,255)
+				Text.TextStrokeTransparency = 0
+			end
+		end
+		if auraEnabled then
+			task.wait(1)
+			if char:FindFirstChild("HumanoidRootPart") then
+				local Highlight = Instance.new("Highlight")
+				Highlight.Name = "AuraHighlight"
+				Highlight.FillColor = Color3.fromRGB(255, 255, 0)
+				Highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+				Highlight.Parent = char
+			end
+		end
+	end)
 end)
